@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">EasyLink</string>
+    <string name="computer_link">你好，欢迎来到快联！</string>
+    <string name="jump_to_link">Jump To Link</string>
+    <string name="link">登录</string>
+    <string name="text_transport">文字传输</string>
+    <string name="file_transport">文件传输</string>
+    <string name="transport">传输</string>
+</resources>
