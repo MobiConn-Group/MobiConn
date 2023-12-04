@@ -22,5 +22,16 @@ public class text_transport extends AppCompatActivity {
 
             }
         });
+
+        Button back = findViewById(R.id.text_back);
+        back.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent();
+                intent.setClass(text_transport.this, transport.class);
+                startActivity(intent);
+
+            }
+        });
     }
 }

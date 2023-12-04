@@ -5,7 +5,7 @@
     android:orientation="vertical">
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/text_back"
         android:layout_width="125dp"
         android:layout_height="wrap_content"
         android:text="返回" />
