@@ -8,4 +8,4 @@ https://github.com/MobiConn-Group/MobiConn/tree/desktop
 
 ## Mobile
 
-<Under Construction>
+Under Construction
