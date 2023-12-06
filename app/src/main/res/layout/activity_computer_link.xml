@@ -13,28 +13,36 @@
         android:textSize="22dp" />
 
     <EditText
+        android:id="@+id/loginIp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="请输入电脑IP"
         android:inputType="text" />
 
     <EditText
-        android:id="@+id/editTextText"
+        android:id="@+id/username"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="请输入用户名"
         android:inputType="text" />
 
     <EditText
+        android:id="@+id/userPassword"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="请输入用户密码"
         android:inputType="textPassword" />
 
     <Button
-        android:id="@+id/linkButton"
+        android:id="@+id/signInButton"
         android:layout_width="379dp"
         android:layout_height="wrap_content"
         android:text="@string/link" />
+
+    <TextView
+        android:id="@+id/responseText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="TextView" />
 
 </LinearLayout>
