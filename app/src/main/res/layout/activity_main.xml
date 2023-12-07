@@ -11,6 +11,11 @@
         android:text="Hello EasyLink!"
         android:textSize="30dp"/>
 
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="50px"
+        android:background="#FFFBFE" />
+
     <Button
         android:id="@+id/jumpButton"
         android:layout_width="wrap_content"

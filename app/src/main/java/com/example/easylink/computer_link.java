@@ -1,4 +1,5 @@
 package com.example.easylink;//导入所需的库
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -21,7 +22,6 @@ public class computer_link extends AppCompatActivity {
     private EditText et_ip; //输入IP地址的文本框
     private EditText et_username; //输入用户名的文本框
     private EditText et_password; //输入密码的文本框
-    private Button btn_login; //登录按钮
 
     //定义OkHttpClient对象
     private OkHttpClient client;
@@ -36,7 +36,8 @@ public class computer_link extends AppCompatActivity {
         et_ip = findViewById(R.id.loginIp);
         et_username = findViewById(R.id.username);
         et_password = findViewById(R.id.userPassword);
-        btn_login = findViewById(R.id.signInButton);
+        //登录按钮
+        Button btn_login = findViewById(R.id.signInButton);
 
         //初始化OkHttpClient对象
         client = new OkHttpClient();
@@ -45,19 +46,23 @@ public class computer_link extends AppCompatActivity {
         btn_login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //获取用户输入的IP地址，用户名和密码
-                String ip = et_ip.getText().toString().trim();
-                String username = et_username.getText().toString().trim();
-                String password = et_password.getText().toString().trim();
 
-                //判断输入是否为空
-                if (ip.isEmpty() || username.isEmpty() || password.isEmpty()) {
-                    //提示用户输入不能为空
-                    Toast.makeText(computer_link.this, "请输入IP地址，用户名和密码", Toast.LENGTH_SHORT).show();
-                } else {
-                    //执行登录操作
-                    login(ip, username, password);
-                }
+                Intent intent = new Intent();
+                intent.setClass(computer_link.this, transport.class);
+                startActivity(intent);
+
+                //获取用户输入的IP地址，用户名和密码
+//                String ip = et_ip.getText().toString().trim();
+//                String username = et_username.getText().toString().trim();
+//                String password = et_password.getText().toString().trim();
+//                //判断输入是否为空
+//                if (ip.isEmpty() || username.isEmpty()) {
+//                    //提示用户输入不能为空
+//                    Toast.makeText(computer_link.this, "请输入IP地址，用户名", Toast.LENGTH_SHORT).show();
+//                } else {
+//                    //执行登录操作
+//                    login(ip, username, password);
+//                }
             }
         });
     }
@@ -105,15 +110,15 @@ public class computer_link extends AppCompatActivity {
                         //获取服务器返回的数据，假设是一个JSON字符串
                         try {
                             String result = response.body().string();
+                            //解析JSON字符串，判断登录是否成功，这里省略解析过程
+                            //如果登录成功，跳转到主界面，这里省略跳转过程
+                            //如果登录失败，提示用户失败原因，这里省略提示过程
+                            Intent intent = new Intent();
+                            intent.setClass(computer_link.this, transport.class);
+                            startActivity(intent);
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
-
-                        //解析JSON字符串，判断登录是否成功，这里省略解析过程
-
-                        //如果登录成功，跳转到主界面，这里省略跳转过程
-
-                        //如果登录失败，提示用户失败原因，这里省略提示过程
                     }
                 });
             }

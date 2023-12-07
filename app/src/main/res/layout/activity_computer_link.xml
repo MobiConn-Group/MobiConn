@@ -39,10 +39,4 @@
         android:layout_height="wrap_content"
         android:text="@string/link" />
 
-    <TextView
-        android:id="@+id/responseText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="TextView" />
-
 </LinearLayout>

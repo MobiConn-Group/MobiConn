@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 
 public class text_transport extends AppCompatActivity {
 
@@ -23,14 +24,11 @@ public class text_transport extends AppCompatActivity {
             }
         });
 
-        Button back = findViewById(R.id.text_back);
+        ImageButton back = findViewById(R.id.text_back);
         back.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent();
-                intent.setClass(text_transport.this, transport.class);
-                startActivity(intent);
-
+                text_transport.this.finish();
             }
         });
     }

@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 
 public class file_transport extends AppCompatActivity {
 
@@ -23,14 +24,11 @@ public class file_transport extends AppCompatActivity {
             }
         });
 
-        Button back = findViewById(R.id.file_back);
+        ImageButton back = findViewById(R.id.file_back);
         back.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent();
-                intent.setClass(file_transport.this, transport.class);
-                startActivity(intent);
-
+                file_transport.this.finish();
             }
         });
     }

@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ToggleButton;
 
 import androidx.annotation.Nullable;
@@ -37,6 +38,15 @@ public class transport extends AppCompatActivity {
 
             }
         });
+
+        Button logout = findViewById(R.id.logout);
+        logout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                transport.this.finish();
+            }
+        });
+
 
 
     }
