@@ -13,6 +13,9 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import okhttp3.WebSocket;
+import okhttp3.WebSocketListener;
+
 import java.io.IOException;
 
 //定义一个LoginActivity类，继承自AppCompatActivity
@@ -22,9 +25,6 @@ public class computer_link extends AppCompatActivity {
     private EditText et_ip; //输入IP地址的文本框
     private EditText et_username; //输入用户名的文本框
     private EditText et_password; //输入密码的文本框
-
-    //定义OkHttpClient对象
-    private OkHttpClient client;
 
     //重写onCreate方法，初始化控件和事件
     @Override
@@ -39,14 +39,11 @@ public class computer_link extends AppCompatActivity {
         //登录按钮
         Button btn_login = findViewById(R.id.signInButton);
 
-        //初始化OkHttpClient对象
-        client = new OkHttpClient();
-
         //设置登录按钮的点击事件
         btn_login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                // Debug Mode
                 Intent intent = new Intent();
                 intent.setClass(computer_link.this, transport.class);
                 startActivity(intent);
@@ -70,7 +67,10 @@ public class computer_link extends AppCompatActivity {
     //定义一个login方法，用于向服务器发送登录请求
     private void login(String ip, String username, String password) {
         //构造请求地址，假设服务器提供了一个login接口，接收IP，username和password参数
-        String url = "http://" + ip + "/login";
+        String url = "http://" + ip + ":25236";
+
+        //初始化OkHttpClient对象
+        OkHttpClient client = new OkHttpClient();
 
         //构造请求体，使用FormBody携带键值对参数
         RequestBody requestBody = new FormBody.Builder()
@@ -83,6 +83,7 @@ public class computer_link extends AppCompatActivity {
                 .url(url)
                 .post(requestBody)
                 .build();
+
 
         //通过OkHttpClient对象构造Call对象
         Call call = client.newCall(request);
@@ -114,6 +115,10 @@ public class computer_link extends AppCompatActivity {
                             //如果登录成功，跳转到主界面，这里省略跳转过程
                             //如果登录失败，提示用户失败原因，这里省略提示过程
                             Intent intent = new Intent();
+                            intent.putExtra("url", url);
+                            intent.putExtra("username", username);
+                            intent.putExtra("password", password);
+
                             intent.setClass(computer_link.this, transport.class);
                             startActivity(intent);
                         } catch (IOException e) {
@@ -124,4 +129,7 @@ public class computer_link extends AppCompatActivity {
             }
         });
     }
+
+
+
 }
