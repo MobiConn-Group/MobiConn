@@ -2,6 +2,7 @@ package com.example.easylink.util;
 
 import android.app.Service;
 import android.content.Context;
+import android.os.VibrationEffect;
 import android.os.Vibrator;
 
 public class VibrateUtil {
@@ -12,20 +13,14 @@ public class VibrateUtil {
     public static void vibrate(Context context, long milliseconds) {
         Vibrator vib = (Vibrator) context.getSystemService(Service.VIBRATOR_SERVICE);
         if(vib.hasVibrator()){  //判断手机硬件是否有振动器
-            vib.vibrate(milliseconds);
+            //创建一个简单的振动效果，参数为持续时间和振动强度
+            VibrationEffect effect = VibrationEffect.createOneShot(milliseconds, VibrationEffect.DEFAULT_AMPLITUDE);
+            //使用振动效果来振动设备
+            vib.vibrate(effect);
         }
     }
 
-    /**
-     * 让手机以我们自己设定的pattern[]模式振动
-     * long pattern[] = {1000, 20000, 10000, 10000, 30000};
-     */
-    public static void vibrate(Context context, long[] pattern,int repeat){
-        Vibrator vib = (Vibrator) context.getSystemService(Service.VIBRATOR_SERVICE);
-        if(vib.hasVibrator()){
-            vib.vibrate(pattern,repeat);
-        }
-    }
+
 
     /**
      * 取消震动

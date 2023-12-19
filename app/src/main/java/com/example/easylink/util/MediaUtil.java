@@ -6,12 +6,15 @@ import android.media.MediaPlayer;
 import android.media.RingtoneManager;
 import android.net.Uri;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 public class MediaUtil {
 
     private static MediaPlayer mMediaPlayer;
 
     //开始播放
-    public static void playRing(Context context){
+    public static void playRing(Context context) {
         try {
             //用于获取手机默认铃声的Uri
             Uri alert = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
@@ -27,7 +30,7 @@ public class MediaUtil {
         }
     }
     //停止播放
-    public static void stopRing(){
+    public static void stopRing() {
         if (mMediaPlayer!=null){
             if (mMediaPlayer.isPlaying()){
                 mMediaPlayer.stop();
@@ -35,6 +38,18 @@ public class MediaUtil {
             }
         }
     }
+
+    public static void ring(Context context) {
+        playRing(context);
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                //停止播放音频
+                MediaUtil.stopRing();
+            }
+        }, 10000); //10秒后执行
+    }
+
 }
 /*
 //开启

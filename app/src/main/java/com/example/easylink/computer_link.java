@@ -119,11 +119,11 @@ public class computer_link extends AppCompatActivity {
                             //如果登录成功，跳转到主界面，这里省略跳转过程
                             //如果登录失败，提示用户失败原因，这里省略提示过程
                             if (statusCode == 200) {
-                                Resource token =  (Resource)getApplication();
-                                token.setToken(response.header("Token"));
+                                Resource resource =  (Resource)getApplication();
+                                resource.setToken(response.header("Token"));
+                                resource.setIp(ip);
+                                resource.setUsername(username);
                                 Intent intent = new Intent();
-                                intent.putExtra("ip", ip);
-                                intent.putExtra("username", username);
 
                                 intent.setClass(computer_link.this, transport.class);
                                 startActivity(intent);

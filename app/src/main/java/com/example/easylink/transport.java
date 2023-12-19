@@ -1,15 +1,24 @@
 package com.example.easylink;
 
 import android.annotation.SuppressLint;
+import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -17,6 +26,8 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.PackageManagerCompat;
 
 import com.example.easylink.util.ImageUtil;
+import com.example.easylink.util.MediaUtil;
+import com.example.easylink.util.VibrateUtil;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -24,9 +35,18 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.logging.Logger;
 
+import okhttp3.Call;
+import okhttp3.Callback;
 import okhttp3.FormBody;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -36,30 +56,22 @@ import okhttp3.WebSocketListener;
 
 public class transport extends AppCompatActivity {
 
-    private OkHttpClient client;
-    private WebSocket webSocket;
-    private WebSocketListener webSocketListener;
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_transport);
 
+        Resource resource =  (Resource)getApplication();
 
-        client = new OkHttpClient();
+        String ip = resource.getIp();
+        String username = resource.getUsername();
+        TextView textIp = findViewById(R.id.textip);
+        TextView textUsername = findViewById(R.id.textusername);
+        textIp.setText("IP: "+ip);
+        textUsername.setText("用户名: "+username);
 
-        String ip = getIntent().getStringExtra("ip");
-        String username = getIntent().getStringExtra("username");
-        TextView textip = findViewById(R.id.textip);
-        textip.setText("IP: "+ip);
-        TextView textusername = findViewById(R.id.textusername);
-        textusername.setText("用户名: "+username);
-
-        @SuppressLint("SdCardPath") String folderPath = "/sdcard/Pictures";
-        File[] images = ImageUtil.getImagesFromFolder(folderPath);
-
-        Resource imageFile = (Resource) getApplication();
-        imageFile.setImages(images);
 
         runServer(ip);
 
@@ -124,6 +136,27 @@ public class transport extends AppCompatActivity {
                                 for (int i = 0; i < goals.length(); ++i) {
                                     JSONObject goal = goals.getJSONObject(i);
                                     //TODO 完成各种类型的实现
+                                    String action = goal.getString("Action");
+                                    switch (action) {
+                                        case "download" : {
+
+                                        }
+                                        case "ring" : {
+                                            MediaUtil.ring(this);
+                                        }
+                                        case "vibrate" : {
+                                            VibrateUtil.vibrate(this, 5000);
+                                        }
+                                        case "upload" : {
+
+                                        }
+                                        case "album" : {
+
+                                        }
+                                        case "photo" : {
+
+                                        }
+                                    }
                                 }
                             } else {
                                 Logger.getGlobal().warning("Get Fault");
@@ -148,5 +181,6 @@ public class transport extends AppCompatActivity {
         // 启动线程
         thread.start();
     }
+
 
 }
