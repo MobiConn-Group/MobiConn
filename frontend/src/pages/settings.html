@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>增强美观性的左侧导航栏</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="../styles/settings.css">
+    <link rel="stylesheet" href="../styles/sidebar.css">
+
+</head>
+
+<body>
+    <div id="sidebar">
+        <div class="user_info">
+            <h2>用户名:</h2>
+        </div>
+        <ul>
+            <li>
+                <a href="./transfer.html"><i class="fas fa-file-upload"></i>文件传输</a>
+            </li>
+            <li>
+                <a href="./img_browser.html"><i class="fas fa-images"></i>查看手机照片</a>
+            </li>
+            <li>
+                <a href="./settings.html"><i class="fas fa-cogs"></i>设置</a>
+            </li>
+        </ul>
+        <div class="signal-container"> <!-- 用于容纳信号图标 -->
+            <div class="signal-icon"><i class="fas fa-signal"></i></div> <!-- 信号图标小方块 -->
+        </div>
+    </div>
+    <div id="content">
+        <h1 style="text-align: center; color: #333;">Settings</h1>
+        <div style="margin-bottom: 20px;">
+            <label style="font-weight: bold; margin-bottom: 20px; display: block;">文件传输提醒设置:</label>
+            <div class="remind_phone">
+                <input id="reminder_phone" type="checkbox" value="remind_phone"><label
+                    for="reminder_phone">上传文件时提醒手机</label>
+            </div>
+            <div class="remin_me">
+                <input id="reminder_me" type="checkbox" value="remind_me"><label for="reminder_me">手机上传文件时提醒你</label>
+            </div>
+
+        </div>
+    </div>
+    <script>
+        // 模拟接收后端信息并改变信号图标颜色的示例代码
+        setTimeout(function () {
+            document.querySelector('.signal-icon').classList.add('connected'); // 当接收到后端信息后，添加 connected 类来改变颜色为绿色
+        }, 1000); // 3秒后模拟接收到后端信息
+
+        const showMessageModal = (message) => {
+            const modal = new bootstrap.Modal(document.getElementById('messageModal'));
+            document.getElementById('messageContent').innerText = message;
+            modal.show();
+        };
+    </script>
+    <script src="./main.js">
+    </script>
+</body>
+
+</html>
