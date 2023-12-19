@@ -132,6 +132,7 @@ func httpServer() error {
 	mux := http.NewServeMux()
 
 	// 绑定处理函数到路由路径
+	mux.HandleFunc("/greeting", greetingHandler)
 	mux.HandleFunc("/connect", connectHandler)
 	mux.HandleFunc("/heartbeat", heartbeatHandler)
 	mux.HandleFunc("/download", downloadHandler)
@@ -152,6 +153,11 @@ func httpServer() error {
 	}()
 
 	return nil
+}
+
+func greetingHandler(w http.ResponseWriter, r *http.Request) {
+	message := "Hello World!"
+	_, _ = fmt.Fprintln(w, message)
 }
 
 func readIP(req *http.Request) (ip string, port string, err error) {
