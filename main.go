@@ -41,6 +41,8 @@ var deviceAlbumFetchPaths = map[string][]string{}
 // 记录每个设备需要读取的的相册文件
 var deviceAlbumFetchFiles = map[string][]string{}
 
+var albumCount = map[string]int{}
+
 // Device 表示一个设备的信息。
 type Device struct {
 	Hostname        string
@@ -133,20 +135,36 @@ func httpServer() error {
 
 	// 绑定处理函数到路由路径
 	mux.HandleFunc("/greeting", greetingHandler)
-	mux.HandleFunc("/connect", connectHandler)
-	mux.HandleFunc("/heartbeat", heartbeatHandler)
-	mux.HandleFunc("/download", downloadHandler)
-	mux.HandleFunc("/upload", uploadHandler)
-	mux.HandleFunc("/transit", transitHandler)
-	mux.HandleFunc("/cursorText", cursorTextHandler)
-	mux.HandleFunc("/powerPoint", powerPointHandler)
-	mux.HandleFunc("/photo", photoHandler)
+	mux.HandleFunc("/albumCount", albumCountHandler)
 
-	mux.HandleFunc("/powerPointDemo", powerPointDemoHandler)
+	//mux.HandleFunc("/connect", connectHandler)
+	//mux.HandleFunc("/heartbeat", heartbeatHandler)
+	//mux.HandleFunc("/download", downloadHandler)
+	//mux.HandleFunc("/upload", uploadHandler)
+	//mux.HandleFunc("/transit", transitHandler)
+	//mux.HandleFunc("/cursorText", cursorTextHandler)
+	//mux.HandleFunc("/powerPoint", powerPointHandler)
+	//mux.HandleFunc("/photo", photoHandler)
+	//
+	//mux.HandleFunc("/powerPointDemo", powerPointDemoHandler)
 
 	// 启动HTTP服务器
 	go func() {
 		err := http.ListenAndServe(":25236", mux)
+		if err != nil {
+			fmt.Println("HTTP server error:", err)
+		}
+	}()
+
+	// 创建ServeMux实例，以实现与Vue前端的交互
+	frontendMux := http.NewServeMux()
+
+	// 绑定处理函数到路由路径
+	frontendMux.HandleFunc("/getAlbumCount", frontendGetAlbumCountHandler)
+
+	// 启动HTTP服务器
+	go func() {
+		err := http.ListenAndServe(":25237", frontendMux)
 		if err != nil {
 			fmt.Println("HTTP server error:", err)
 		}
@@ -205,6 +223,14 @@ func heartbeatHandler(w http.ResponseWriter, r *http.Request) {
 	connectedDevices[r.RemoteAddr] = device
 
 	var goals []any
+
+	for count := albumCount[r.RemoteAddr]; count != -1; {
+		goal := map[string]any{
+			"Action": "albumCount",
+		}
+		goals = append(goals, goal)
+	}
+
 	// 检查是否有文件需要下载
 	for _, s := range deviceDownloadList[r.RemoteAddr] {
 		fileInfo, err := os.Stat("./download/" + s)
@@ -289,7 +315,7 @@ func heartbeatHandler(w http.ResponseWriter, r *http.Request) {
 		"Status": "success",
 	}
 	if len(goals) != 0 {
-		response["goals"] = goals
+		response["Goals"] = goals
 	}
 
 	// 将响应转换为JSON
@@ -304,6 +330,22 @@ func heartbeatHandler(w http.ResponseWriter, r *http.Request) {
 	// Send response
 	_, _ = fmt.Fprintln(w, string(responseJson))
 	//}
+}
+
+func albumCountHandler(w http.ResponseWriter, r *http.Request) {
+	// check key in map
+	_, ok := albumCount[r.RemoteAddr]
+	if !ok {
+		_, _ = fmt.Fprintln(w, "You are not in albumCount request list.")
+		return
+	}
+	count := r.FormValue("albumCount")
+	if count == "" {
+		_, _ = fmt.Fprintln(w, "Album count is required.")
+		return
+	}
+	albumCount[r.RemoteAddr], _ = strconv.Atoi(count)
+	_, _ = fmt.Fprintln(w, "OK.")
 }
 
 func connectHandler(w http.ResponseWriter, r *http.Request) {
@@ -604,6 +646,19 @@ func photoHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		err = os.WriteFile("./album/"+r.RemoteAddr+"/"+r.FormValue("path")+"/"+handler.Filename, fileBytes, 0644)
 	}
+}
+
+func frontendGetAlbumCountHandler(w http.ResponseWriter, r *http.Request) {
+	remoteAddr := r.FormValue("RemoteAddress")
+	if remoteAddr == "" {
+		_, _ = fmt.Fprintln(w, "Remote address is required.")
+		return
+	}
+	albumCount[remoteAddr] = -1
+	for albumCount[remoteAddr] == -1 {
+		time.Sleep(100 * time.Millisecond)
+	}
+	_, _ = fmt.Fprintln(w, albumCount[remoteAddr])
 }
 
 func connectionAllowed(device *Device) bool {
