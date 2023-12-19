@@ -7,9 +7,6 @@ import android.widget.EditText;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.FormBody;
@@ -17,8 +14,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import okhttp3.WebSocket;
-import okhttp3.WebSocketListener;
 
 import java.io.IOException;
 
@@ -75,7 +70,7 @@ public class computer_link extends AppCompatActivity {
     //定义一个login方法，用于向服务器发送登录请求
     private void login(String ip, String username, String password) {
         //构造请求地址，假设服务器提供了一个login接口，接收IP，username和password参数
-        String url = "http://" + ip + ":25236";
+        String url = "http://" + ip + ":25236/greeting";
 
         //初始化OkHttpClient对象
         OkHttpClient client = new OkHttpClient();
@@ -124,10 +119,10 @@ public class computer_link extends AppCompatActivity {
                             //如果登录成功，跳转到主界面，这里省略跳转过程
                             //如果登录失败，提示用户失败原因，这里省略提示过程
                             if (statusCode == 200) {
-                                Token token =  (Token)getApplication();
+                                Resource token =  (Resource)getApplication();
                                 token.setToken(response.header("Token"));
                                 Intent intent = new Intent();
-                                intent.putExtra("url", url);
+                                intent.putExtra("ip", ip);
                                 intent.putExtra("username", username);
 
                                 intent.setClass(computer_link.this, transport.class);
