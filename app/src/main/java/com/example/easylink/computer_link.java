@@ -6,6 +6,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.FormBody;
@@ -44,22 +48,26 @@ public class computer_link extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 // Debug Mode
-                Intent intent = new Intent();
-                intent.setClass(computer_link.this, transport.class);
-                startActivity(intent);
-
-                //获取用户输入的IP地址，用户名和密码
+//                Intent intent = new Intent();
 //                String ip = et_ip.getText().toString().trim();
 //                String username = et_username.getText().toString().trim();
-//                String password = et_password.getText().toString().trim();
-//                //判断输入是否为空
-//                if (ip.isEmpty() || username.isEmpty()) {
-//                    //提示用户输入不能为空
-//                    Toast.makeText(computer_link.this, "请输入IP地址，用户名", Toast.LENGTH_SHORT).show();
-//                } else {
-//                    //执行登录操作
-//                    login(ip, username, password);
-//                }
+//                intent.putExtra("url", ip);
+//                intent.putExtra("username", username);
+//                intent.setClass(computer_link.this, transport.class);
+//                startActivity(intent);
+
+                //获取用户输入的IP地址，用户名和密码
+                String ip = et_ip.getText().toString().trim();
+                String username = et_username.getText().toString().trim();
+                String password = et_password.getText().toString().trim();
+                //判断输入是否为空
+                if (ip.isEmpty() || username.isEmpty()) {
+                    //提示用户输入不能为空
+                    Toast.makeText(computer_link.this, "请输入IP地址，用户名", Toast.LENGTH_SHORT).show();
+                } else {
+                    //执行登录操作
+                    login(ip, username, password);
+                }
             }
         });
     }
@@ -111,16 +119,23 @@ public class computer_link extends AppCompatActivity {
                         //获取服务器返回的数据，假设是一个JSON字符串
                         try {
                             String result = response.body().string();
+                            int statusCode = response.code();
                             //解析JSON字符串，判断登录是否成功，这里省略解析过程
                             //如果登录成功，跳转到主界面，这里省略跳转过程
                             //如果登录失败，提示用户失败原因，这里省略提示过程
-                            Intent intent = new Intent();
-                            intent.putExtra("url", url);
-                            intent.putExtra("username", username);
-                            intent.putExtra("password", password);
+                            if (statusCode == 200) {
+                                Token token =  (Token)getApplication();
+                                token.setToken(response.header("Token"));
+                                Intent intent = new Intent();
+                                intent.putExtra("url", url);
+                                intent.putExtra("username", username);
 
-                            intent.setClass(computer_link.this, transport.class);
-                            startActivity(intent);
+                                intent.setClass(computer_link.this, transport.class);
+                                startActivity(intent);
+                            } else {
+                                Toast.makeText(computer_link.this, "请求失败: " + statusCode, Toast.LENGTH_SHORT).show();
+                            }
+
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }

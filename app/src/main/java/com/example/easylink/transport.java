@@ -1,10 +1,12 @@
 package com.example.easylink;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import androidx.annotation.Nullable;
@@ -33,23 +35,13 @@ public class transport extends AppCompatActivity {
 
         client = new OkHttpClient();
 
-        String username = getIntent().getStringExtra("username");
-        String password = getIntent().getStringExtra("password");
         String url = getIntent().getStringExtra("url");
-
-        //构造请求体，使用FormBody携带键值对参数
-        RequestBody requestBody = new FormBody.Builder()
-                .add("username", username)
-                .add("password", password)
-                .build();
-
-        //构造请求对象，使用POST方法
-        Request request = new Request.Builder()
-                .url(url)
-                .post(requestBody)
-                .build();
-
-        link_webserver(request);
+        String username = getIntent().getStringExtra("username");
+        TextView textip = findViewById(R.id.textip);
+        textip.setText("IP: "+url);
+        TextView textusername = findViewById(R.id.textusername);
+        textusername.setText("用户名: "+username);
+        link_webserver();
 
         Button textTransButton = findViewById(R.id.textTransButton);
         textTransButton.setOnClickListener(new View.OnClickListener() {
@@ -85,41 +77,8 @@ public class transport extends AppCompatActivity {
 
     }
 
-    private void link_webserver(Request request) {
-        WebSocketListener listener = new WebSocketListener() {
-            @Override
-            public void onOpen(WebSocket webSocket, Response response) {
-                System.out.println("WebSocket connection opened");
+    private void link_webserver() {
 
-            }
-
-            @Override
-            public void onMessage(WebSocket webSocket, String text) {
-                System.out.println("Received message: " + text);
-                // 在这里处理接收到的消息
-            }
-
-            @Override
-            public void onClosed(WebSocket webSocket, int code, String reason) {
-                System.out.println("WebSocket connection closed");
-            }
-
-            @Override
-            public void onFailure(WebSocket webSocket, Throwable t, Response response) {
-                System.out.println("WebSocket connection failed");
-            }
-        };
-
-        WebSocket webSocket = client.newWebSocket(request, listener);
-
-        // 可选：发送消息到服务器
-        webSocket.send("Hello, server!");
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        // 关闭WebSocket连接
-        webSocket.cancel();
-    }
 }
