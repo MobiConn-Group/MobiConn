@@ -1,58 +1,25 @@
-  
-        #content {
-            margin-left: 150px;
-            padding: 20px;
-        }
+  #content {
+      margin-left: 150px;
+      padding: 20px;
+  }
 
-        h1 {
-            text-align: center;
-            color: #333;
-        }
+  h1 {
+      text-align: center;
+      color: #333;
+  }
 
-        input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            /* display: none; */
-        }
-        .remind_phone,
-        .remind_me{
-            display: block;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 30px;
-            display: inline-block;
-        }
+  input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      /* display: none; */
+  }
 
-        label{
-            
-        }
-/* 
-        input[type="checkbox"]+label {
-            display: block;
-            margin-bottom: 10px;
-            position: relative;
-            padding-left: 30px;
-            cursor: pointer;
-        }
-
-        input[type="checkbox"]+label:before {
-            content: "";
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 2px solid #999;
-            position: absolute;
-            left: 0;
-            top: 55%;
-            transform: translateY(-50%);
-        }
-
-        input[type="checkbox"]:checked+label:before:checked {
-            background-color: #007bff;
-            border-color: #007bff;
-        }
-
-        input[type="checkbox"]:checked {
-            background-color: #000;
-        } */
+  .remind_phone,
+  .remind_me {
+      display: block;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 30px;
+      display: inline-block;
+  }

@@ -6,107 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>增强美观性的左侧导航栏</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <style>
-        /* 设置基本字体和页面背景 */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            height: 100vh;
-            margin: 0;
-            background-color: #f4f4f4;
-        }
-
-        /* 设置侧边栏样式 */
-        #sidebar {
-            width: 250px;
-            background-color: #333;
-            color: #fff;
-            position: fixed;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            overflow-y: auto;
-            transition: width 0.5s;
-            /* Smooth transition for sidebar width */
-            z-index: 1000;
-            /* Ensure sidebar is on top of other content */
-        }
-
-        /* 为了在hover时增加侧边栏的宽度 */
-        #sidebar:hover {
-            width: 300px;
-        }
-
-        /* 调整点击效果 */
-        #sidebar a:active {
-            background-color: #111;
-        }
-
-        /* 设置侧边栏内文字和图标间距以及效果 */
-        #sidebar ul {
-            list-style-type: none;
-            padding: 0;
-            /* Reset default padding */
-        }
-
-        /* 设置链接颜色和padding */
-        #sidebar a {
-            display: flex;
-            align-items: center;
-            color: #ddd;
-            /* Slightly muted white for links */
-            text-decoration: none;
-            padding: 15px 20px;
-            transition: all 0.3s, width 0.5s;
-            /* Smooth transition for background color and padding */
-        }
-
-        /* 鼠标悬停时背景色变化 */
-        #sidebar a:hover {
-            background-color: #555;
-            color: #fff;
-            /* Brighter white on hover */
-        }
-
-        /* 设置图标和文字间距 */
-        #sidebar a i {
-            min-width: 20px;
-            /* Ensure icons align nicely */
-            margin-right: 10px;
-            transition: transform 0.3s;
-            /* Smooth transition for icon rotation */
-        }
-
-        /* 旋转图标 */
-        #sidebar a:hover i {
-            transform: rotate(10deg);
-        }
-
-        /* 设置内容区域 */
-        #content {
-            flex: 1;
-            padding: 20px;
-            padding-left: 270px;
-            /* Adjust padding to match sidebar width */
-            transition: padding-left 0.5s;
-            /* Smooth transition for padding */
-        }
-
-        /* 在hover侧边栏时调整内容区域的padding */
-        #sidebar:hover+#content {
-            padding-left: 320px;
-        }
-    </style>
+    <link rel="stylesheet" href="./src/styles/sidebar.css">
+    <link rel="stylesheet" href="./src/styles/transfer.css">
+    <link rel="stylesheet" href="./src/styles/alert.css">
 </head>
 
 <body>
     <div id="sidebar">
-        <div class="user_info">
-            <h2>用户名:</h2>
-        </div>
         <ul>
             <li>
-                <a href="./src/pages/transfer.html"><i class="fas fa-file-upload"></i>文件传输</a>
+                <a href="./index.html"><i class="fas fa-file-upload"></i>文件传输</a>
             </li>
             <li>
                 <a href="./src/pages/img_browser.html"><i class="fas fa-images"></i>查看手机照片</a>
@@ -115,13 +24,49 @@
                 <a href="./src/pages/settings.html"><i class="fas fa-cogs"></i>设置</a>
             </li>
         </ul>
+        <div class="signal-container"> <!-- 用于容纳信号图标 -->
+            <div class="signal-icon"><i class="fas fa-signal"></i></div> <!-- 信号图标小方块 -->
+        </div>
     </div>
+
+
     <div id="content">
-        <h1>主要内容区域</h1>
-        <p>这是主要内容区域，根据导航链接的不同，展示相应的内容。</p>
+        <div class="left-content">
+            <h2>Transfer Info</h2>
+            <textarea name="transfer_info" id="transfer_info" readonly>传输信息：</textarea>
+        </div>
+        <div class="right-content">
+            <h2>选择本地文件</h2>
+            <input type="file" id="fileInput">
+            <button id="upload_btn">上传</button>
+        </div>
     </div>
-    <div id="app"></div>
-    <script src="./src/main.js" type="module"></script>
+
+        <!-- 触发/打开模态框 -->
+        <button id="myBtn" style="position: absolute; right: 0px;">打开模态</button>
+        <!-- 模态框 -->
+        <div id="myModal" class="modal">
+    
+            <!-- 模态内容 -->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <span class="close">&times;</span>
+                    <h2>模态标题</h2>
+                </div>
+                <div class="modal-body">
+                    <p>模态正文中的一些文本</p>
+                    <p>其他一些文字...</p>
+                </div>
+                <div class="modal-footer">
+                    <h3>模态页脚</h3>
+                </div>
+            </div>
+    
+        </div>
+    <script src="./src/js/alert.js">
+    </script>
+    <script src="./src/js/transfer.js">
+    </script>
 </body>
 
 </html>

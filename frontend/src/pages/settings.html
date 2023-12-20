@@ -13,12 +13,9 @@
 
 <body>
     <div id="sidebar">
-        <div class="user_info">
-            <h2>用户名:</h2>
-        </div>
         <ul>
             <li>
-                <a href="./transfer.html"><i class="fas fa-file-upload"></i>文件传输</a>
+                <a href="../../index.html"><i class="fas fa-file-upload"></i>文件传输</a>
             </li>
             <li>
                 <a href="./img_browser.html"><i class="fas fa-images"></i>查看手机照片</a>
@@ -45,19 +42,7 @@
 
         </div>
     </div>
-    <script>
-        // 模拟接收后端信息并改变信号图标颜色的示例代码
-        setTimeout(function () {
-            document.querySelector('.signal-icon').classList.add('connected'); // 当接收到后端信息后，添加 connected 类来改变颜色为绿色
-        }, 1000); // 3秒后模拟接收到后端信息
-
-        const showMessageModal = (message) => {
-            const modal = new bootstrap.Modal(document.getElementById('messageModal'));
-            document.getElementById('messageContent').innerText = message;
-            modal.show();
-        };
-    </script>
-    <script src="./main.js">
+    <script src="../js/settings.js">
     </script>
 </body>
 
