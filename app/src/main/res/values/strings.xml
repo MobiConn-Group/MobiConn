@@ -7,5 +7,6 @@
     <string name="file_transport">文件传输</string>
     <string name="logout">退出登录</string>
     <string name="back">返回</string>
+    <string name="choose_file">选择文件</string>
     <string name="transport">传输</string>
 </resources>

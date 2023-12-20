@@ -23,19 +23,17 @@
         android:background="#FFFBFE" />
 
     <TextView
-        android:id="@+id/textView"
-        android:layout_width="350dp"
+        android:id="@+id/text_trans_ip"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:text="IP:"
         android:textSize="22dp" />
 
     <TextView
-        android:id="@+id/textView2"
-        android:layout_width="350dp"
+        android:id="@+id/text_trans_username"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:text="用户名："
         android:textSize="22dp" />
 
     <View

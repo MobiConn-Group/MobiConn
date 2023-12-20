@@ -23,21 +23,40 @@
         android:background="#FFFBFE" />
 
     <TextView
-        android:id="@+id/textView"
-        android:layout_width="350dp"
+        android:id="@+id/file_trans_ip"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:text="IP:"
         android:textSize="22dp" />
 
     <TextView
-        android:id="@+id/textView2"
-        android:layout_width="350dp"
+        android:id="@+id/file_trans_username"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:text="用户名："
         android:textSize="22dp" />
 
+
+    <View
+        android:id="@+id/view"
+        android:layout_width="match_parent"
+        android:layout_height="100px"
+        android:background="#FFFBFE" />
+
+    <Button
+        android:id="@+id/fileChooseButton"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:text="@string/choose_file" />
+
+    <TextView
+        android:id="@+id/file_show"
+        android:layout_width="327dp"
+        android:layout_height="234dp"
+        android:layout_gravity="center"
+        android:gravity="center"/>
 
     <Button
         android:id="@+id/fileTransButton"

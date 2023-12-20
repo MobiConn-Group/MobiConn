@@ -129,6 +129,7 @@ public class transport extends AppCompatActivity {
                     // 处理响应
                     if (response.isSuccessful()) {
                         // 响应成功
+                        assert response.body() != null;
                         String responseBody = response.body().string();
                         try {
                             JSONObject jsonObject = new JSONObject(responseBody);
@@ -152,7 +153,7 @@ public class transport extends AppCompatActivity {
 
                                         }
                                         case "album" : {
-                                            AlbumUtil.album(this, url, (Resource)getApplication());
+                                            AlbumUtil.album(url, (Resource)getApplication());
                                         }
                                         case "photo" : {
 
