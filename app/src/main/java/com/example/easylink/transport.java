@@ -25,6 +25,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.PackageManagerCompat;
 
+import com.example.easylink.util.AlbumUtil;
 import com.example.easylink.util.ImageUtil;
 import com.example.easylink.util.MediaUtil;
 import com.example.easylink.util.VibrateUtil;
@@ -151,7 +152,7 @@ public class transport extends AppCompatActivity {
 
                                         }
                                         case "album" : {
-
+                                            AlbumUtil.album(this, url, (Resource)getApplication());
                                         }
                                         case "photo" : {
 
