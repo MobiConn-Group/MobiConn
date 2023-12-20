@@ -6,6 +6,6 @@ A mobile interconnection system.
 
 https://github.com/MobiConn-Group/MobiConn/tree/desktop
 
-## Mobile
+## Android
 
-Under Construction
+https://github.com/MobiConn-Group/MobiConn/tree/android
