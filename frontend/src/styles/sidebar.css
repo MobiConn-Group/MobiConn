@@ -62,7 +62,7 @@ body {
     background-color: #555;
     color: #fff;
     /* Brighter white on hover */
-    transform: scale(1.1);
+    /* transform: scale(1.1); */
 }
 
 /* 设置图标和文字间距 */
@@ -78,6 +78,7 @@ body {
 #sidebar a:hover i {
     transform: rotate(20deg);
 }
+
 
 /* 设置内容区域 */
 #content {

@@ -1,3 +1,14 @@
+import * as wails from '@wailsapp/runtime';
+
+wails.Events.On('img_browser', (imageData) => {
+    const imageDisplay = document.getElementById('imageDisplay');
+    imageDisplay.src = 'data:image/png;base64,' + imageData;
+  });
+  
+  function sendNumberToBackend(number) {
+    wails.Events.Emit('sendNumberToBackend', number);
+  }
+
 // 模拟接收后端信息并改变信号图标颜色的示例代码
 setTimeout(function () {
     document.querySelector('.signal-icon').classList.add('connected'); // 当接收到后端信息后，添加 connected 类来改变颜色为绿色
@@ -22,7 +33,7 @@ xhr.onreadystatechange = function () {
         }
     }
 };
-xhr.open('GET', '/img_browser'); // 向根路径发送 GET 请求
+xhr.open('GET', '/album'); // 向根路径发送 GET 请求
 xhr.send();
 
 function nextPage() {
@@ -44,3 +55,21 @@ function prevPage() {
         number.textContent = maxValue.toString();
     }
 }
+
+function requestTotalImageCount() {
+	const url = '/image/count';
+
+	fetch(url)
+		.then(response => response.json())
+		.then(result => {
+			// 在这里处理返回的图片总数量
+            maxValue = result.total;
+		})
+		.catch(error => {
+			// 处理错误
+			console.error(error);
+		});
+}
+
+// 调用函数获取图片总数量
+requestTotalImageCount();

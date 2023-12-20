@@ -4,9 +4,6 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
-	"github.com/go-toast/toast"
-	"github.com/google/uuid"
-	"github.com/micmonay/keybd_event"
 	"io"
 	"net"
 	"net/http"
@@ -14,6 +11,10 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/go-toast/toast"
+	"github.com/google/uuid"
+	"github.com/micmonay/keybd_event"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
