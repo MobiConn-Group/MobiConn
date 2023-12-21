@@ -1,72 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>增强美观性的左侧导航栏</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <link rel="stylesheet" href="./src/styles/sidebar.css">
-    <link rel="stylesheet" href="./src/styles/transfer.css">
-    <link rel="stylesheet" href="./src/styles/alert.css">
+    <meta charset="UTF-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>MyFirstWails</title>
 </head>
-
 <body>
-    <div id="sidebar">
-        <ul>
-            <li>
-                <a href="./index.html"><i class="fas fa-file-upload"></i>文件传输</a>
-            </li>
-            <li>
-                <a href="./src/pages/img_browser.html"><i class="fas fa-images"></i>查看手机照片</a>
-            </li>
-            <li>
-                <a href="./src/pages/settings.html"><i class="fas fa-cogs"></i>设置</a>
-            </li>
-        </ul>
-        <div class="signal-container"> <!-- 用于容纳信号图标 -->
-            <div class="signal-icon"><i class="fas fa-signal"></i></div> <!-- 信号图标小方块 -->
-        </div>
-    </div>
-
-
-    <div id="content">
-        <div class="left-content">
-            <h2>Transfer Info</h2>
-            <textarea name="transfer_info" id="transfer_info" readonly>传输信息：</textarea>
-        </div>
-        <div class="right-content">
-            <h2>选择本地文件</h2>
-            <input type="file" id="fileInput">
-            <button id="upload_btn">上传</button>
-        </div>
-    </div>
-
-        <!-- 触发/打开模态框 -->
-        <button id="myBtn" style="position: absolute; right: 0px;">打开模态</button>
-        <!-- 模态框 -->
-        <div id="myModal" class="modal">
-    
-            <!-- 模态内容 -->
-            <div class="modal-content">
-                <div class="modal-header">
-                    <span class="close">&times;</span>
-                    <h2>模态标题</h2>
-                </div>
-                <div class="modal-body">
-                    <p>模态正文中的一些文本</p>
-                    <p>其他一些文字...</p>
-                </div>
-                <div class="modal-footer">
-                    <h3>模态页脚</h3>
-                </div>
-            </div>
-    
-        </div>
-    <script src="./src/js/alert.js">
-    </script>
-    <script src="./src/js/transfer.js">
-    </script>
+<div id="app"></div>
+<script src="./src/main.js" type="module"></script>
 </body>
-
 </html>
+
