@@ -82,16 +82,22 @@ public class file_transport extends AppCompatActivity {
         fileTransButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                List<String> uploadFiles = resource.getUploadFiles();
-                if (uploadFiles == null) {
-                    return ;
-                }
-                StringBuilder fileShowText = new StringBuilder("已添加的文件:\n");
-                for (String fileName : uploadFiles) {
-                    fileShowText.append(fileName).append("\n");
-                }
-                TextView fileShow = findViewById(R.id.file_show);
-                fileShow.setText(fileShowText);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        List<String> uploadFiles = resource.getUploadFiles();
+                        if (uploadFiles == null) {
+                            Toast.makeText(getApplicationContext(), "传输列表为空！", Toast.LENGTH_SHORT).show();
+                            return ;
+                        }
+                        StringBuilder fileShowText = new StringBuilder("已添加的文件:\n");
+                        for (String fileName : uploadFiles) {
+                            fileShowText.append(fileName).append("\n");
+                        }
+                        TextView fileShow = findViewById(R.id.file_show);
+                        fileShow.setText(fileShowText);
+                    }
+                });
             }
         });
 

@@ -34,11 +34,7 @@ public class file_open extends AppCompatActivity {
         String ip = resource.getIp();
         String url = "http://" + ip + ":25236";
 
-        openFile(url);
-        file_open.this.finish();
-    }
-
-    private void openFile(String url) {
+//        openFile(url);
         ActivityResultLauncher<Intent> launcher = registerForActivityResult( new ActivityResultContracts.StartActivityForResult(), result -> {
             if (result.getData() != null && result.getResultCode() == Activity.RESULT_OK) {
                 final Intent data = result.getData();
@@ -58,7 +54,6 @@ public class file_open extends AppCompatActivity {
                         InputStream inputStream = resolver.openInputStream(uri);
                         if (inputStream != null) {
                             File file = createFileFromInputStream(inputStream, displayName);
-                            Resource resource =  (Resource)getApplication();
                             List<String> uploadFiles = resource.getUploadFiles();
                             uploadFiles.add(file.getName());
                             resource.setUploadFiles(uploadFiles);
@@ -85,6 +80,11 @@ public class file_open extends AppCompatActivity {
         intent.setType("*/*");
 
         launcher.launch(intent);
+        file_open.this.finish();
+    }
+
+    private void openFile(String url) {
+
     }
 
     // 从输入流创建临时文件
