@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bufio"
+	"crypto/md5"
 	"embed"
+	"encoding/base64"
 	"fmt"
 	"github.com/google/uuid"
-	"io"
 	"net/http"
 	"os"
 	"strconv"
@@ -32,9 +34,6 @@ var devicePhotos = map[string][]string{
 // 维护每个设备的下载列表
 var deviceDownloadList = map[string][]string{}
 
-//// 维护每个设备的上传列表
-//var deviceUploadList = map[string][]UploadInfo{}
-
 // 记录将要响铃的设备主机和铃声及响铃持续秒数
 var deviceRingList = map[string]RingInfo{}
 
@@ -57,22 +56,6 @@ type DownloadInfo struct {
 	Length   int64
 }
 
-// AcceptStatus 表示上传请求是否被接受或被拒绝。
-type AcceptStatus int
-
-const (
-	Accept AcceptStatus = iota
-	Reject
-	Pending
-)
-
-// UploadInfo 表示上传请求的信息。
-type UploadInfo struct {
-	FileName string       // 文件名
-	Length   int64        // 文件长度
-	Accepted AcceptStatus // 上传请求是否被接受或被拒绝
-}
-
 // RingInfo 表示响铃任务的信息。
 type RingInfo struct {
 	Tone     string // 铃声文件名
@@ -81,23 +64,40 @@ type RingInfo struct {
 
 var keyBonding keybd_event.KeyBonding
 
+func loadBase64Picture(fileName string) string {
+	file, err := os.Open(fileName)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+	fileInfo, err := file.Stat()
+	if err != nil {
+		panic(err)
+	}
+	fileContent := make([]byte, fileInfo.Size())
+	n, err := file.Read(fileContent)
+	if err != nil {
+		panic(err)
+	}
+	if n != int(fileInfo.Size()) {
+		panic("Read file error.")
+	}
+	return base64.StdEncoding.EncodeToString(fileContent)
+}
+
 func main() {
+	base64Picture := loadBase64Picture("C:\\Users\\ab123\\Pictures\\艾丝妲\\asta.png")
+	fmt.Println(base64Picture)
+	devicePhotos["localhost"] = append(devicePhotos["localhost"], base64Picture)
+	base64Picture = loadBase64Picture("C:\\Users\\ab123\\Pictures\\个人头像\\美乐蒂玩电脑.jpg")
+	fmt.Println(base64Picture)
+	devicePhotos["localhost"] = append(devicePhotos["localhost"], base64Picture)
+
 	// Create an instance of the app structure
 	app := NewApp()
 
-	// Create download directory if not exists
-	_, err := os.Stat("./download")
-	if err != nil {
-		if os.IsNotExist(err) {
-			err = os.Mkdir("./download", os.ModePerm)
-			if err != nil {
-				fmt.Println("Error:", err.Error())
-			}
-		}
-	}
-
 	// Create http server
-	err = httpServer()
+	err := httpServer()
 	if err != nil {
 		println("Error:", err.Error())
 	}
@@ -105,8 +105,8 @@ func main() {
 	// Create application with options
 	err = wails.Run(&options.App{
 		Title:  "MobiConn",
-		Width:  1024,
-		Height: 768,
+		Width:  1200,
+		Height: 1000,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
@@ -131,18 +131,19 @@ func httpServer() error {
 	// 创建ServeMux实例
 	mux := http.NewServeMux()
 
-	k = 3
-
 	// 绑定处理函数到路由路径
 	mux.HandleFunc("/greeting", greetingHandler)
-	//mux.HandleFunc("/heartbeat", heartbeatHandler)
-	mux.HandleFunc("/photo/upload", uploadPhotosHandler)
+	mux.HandleFunc("/heartbeat", heartbeatHandler)
+	mux.HandleFunc("/file/download", fileDownloadHandler)
+	mux.HandleFunc("/file/upload", fileUploadHandler)
+	mux.HandleFunc("/photo/count", photoCountHandler)
+	mux.HandleFunc("/photo/upload", photoUploadHandler)
 	mux.HandleFunc("/ppt", powerPointHandler)
+	mux.HandleFunc("/cursorText", cursorTextHandler)
 
 	//mux.HandleFunc("/download", downloadHandler)
 	//mux.HandleFunc("/upload", uploadHandler)
 	//mux.HandleFunc("/transit", transitHandler)
-	//mux.HandleFunc("/cursorText", cursorTextHandler)
 	//mux.HandleFunc("/photo", photoHandler)
 	//
 	//mux.HandleFunc("/powerPointDemo", powerPointDemoHandler)
@@ -155,201 +156,229 @@ func httpServer() error {
 		}
 	}()
 
-	//// 创建ServeMux实例，以实现与Vue前端的交互
-	//frontendMux := http.NewServeMux()
-	//
-	//// 绑定处理函数到路由路径
-	//frontendMux.HandleFunc("/getAlbumCount", frontendGetAlbumCountHandler)
-	//
-	//// 启动HTTP服务器
-	//go func() {
-	//	err := http.ListenAndServe(":25237", frontendMux)
-	//	if err != nil {
-	//		fmt.Println("HTTP server error:", err)
-	//	}
-	//}()
-
 	return nil
 }
 
+// greetingHandler 处理问候请求
 func greetingHandler(w http.ResponseWriter, r *http.Request) {
 	message := "Hello World!"
 	_, _ = fmt.Fprintln(w, message)
 }
 
-//func heartbeatHandler(w http.ResponseWriter, r *http.Request) {
-//	// 检查客户端是否已连接过
-//	if _, ok := connectedDevices[r.RemoteAddr]; !ok {
-//		_, _ = fmt.Fprintln(w, "You have never connected to this server yet. Please connect first.")
-//		return
-//	}
-//
-//	// 检查Token是否匹配
-//	if r.FormValue("token") != connectedDevices[r.RemoteAddr].Token.String() {
-//		_, _ = fmt.Fprintln(w, "Token is not matched. Please connect again.")
-//		return
-//	}
-//
-//	// 更新最后连接时间
-//	device := connectedDevices[r.RemoteAddr]
-//	device.LastConnection = time.Now()
-//	connectedDevices[r.RemoteAddr] = device
-//
-//	var goals []any
-//
-//	for count := albumCount[r.RemoteAddr]; count != -1; {
-//		goal := map[string]any{
-//			"Action": "albumCount",
-//		}
-//		goals = append(goals, goal)
-//	}
-//
-//	// 检查是否有文件需要下载
-//	for _, s := range deviceDownloadList[r.RemoteAddr] {
-//		fileInfo, err := os.Stat("./download/" + s)
-//		if err != nil {
-//			// 文件不存在，输出控制台警告
-//			fmt.Println("Error:", err.Error())
-//			continue
-//		}
-//		goal := map[string]any{
-//			"Action": "download",
-//			"Information": DownloadInfo{
-//				FileName: s,
-//				Length:   fileInfo.Size(),
-//			},
-//		}
-//		goals = append(goals, goal)
-//	}
-//	// 检查响铃任务信息
-//	if ringInfo, ok := deviceRingList[r.RemoteAddr]; ok {
-//		goal := map[string]any{
-//			"Action":      "ring",
-//			"Information": ringInfo,
-//		}
-//		goals = append(goals, goal)
-//	}
-//
-//	// 检查是否有文件需要上传
-//	for _, uploadInfo := range deviceUploadList[r.RemoteAddr] {
-//		if uploadInfo.Accepted == Pending {
-//			continue
-//		} else if uploadInfo.Accepted == Reject {
-//			goal := map[string]any{
-//				"Action": "upload",
-//				"Information": map[string]any{
-//					"FileName": uploadInfo.FileName,
-//					"Status":   "rejected",
-//				},
-//			}
-//			goals = append(goals, goal)
-//			continue
-//		} else if uploadInfo.Accepted == Accept {
-//			goal := map[string]any{
-//				"Action": "upload",
-//				"Information": map[string]any{
-//					"FileName": uploadInfo.FileName,
-//					"Status":   "accepted",
-//				},
-//			}
-//			goals = append(goals, goal)
-//		}
-//
-//		// 从上传列表中删除该文件
-//		for i, info := range deviceUploadList[r.RemoteAddr] {
-//			if info.FileName == uploadInfo.FileName {
-//				deviceUploadList[r.RemoteAddr] = append(deviceUploadList[r.RemoteAddr][:i], deviceUploadList[r.RemoteAddr][i+1:]...)
-//				break
-//			}
-//		}
-//		continue
-//	}
-//
-//	// 检查是否有相册需要读取
-//	for _, path := range deviceAlbumFetchPaths[r.RemoteAddr] {
-//		goal := map[string]any{
-//			"Action": "album",
-//			"Path":   path,
-//		}
-//		goals = append(goals, goal)
-//	}
-//
-//	// 检查是否有相册文件需要读取
-//	for _, file := range deviceAlbumFetchFiles[r.RemoteAddr] {
-//		goal := map[string]any{
-//			"Action": "photo",
-//			"File":   file,
-//		}
-//		goals = append(goals, goal)
-//	}
-//
-//	// 将goals加入响应
-//	response := map[string]any{
-//		"Status": "success",
-//	}
-//	if len(goals) != 0 {
-//		response["Goals"] = goals
-//	}
-//
-//	// 将响应转换为JSON
-//	responseJson, err := json.Marshal(response)
-//	if err != nil {
-//		http.Error(w, err.Error(), http.StatusInternalServerError)
-//		return
-//	}
-//
-//	// Set response header
-//	w.Header().Set("Content-Type", "application/json")
-//	// Send response
-//	_, _ = fmt.Fprintln(w, string(responseJson))
-//	//}
-//}
+// heartbeatHandler 处理心跳请求
+func heartbeatHandler(w http.ResponseWriter, r *http.Request) {
+	device := connectedDevices[r.RemoteAddr]
+	device.LastConnection = time.Now()
+	connectedDevices[r.RemoteAddr] = device
 
-func uploadPhotosHandler(w http.ResponseWriter, r *http.Request) {
+	var goals []any
+
+	// 文件下载
+	for _, fileName := range deviceDownloadList[r.RemoteAddr] {
+		fileInfo, err := os.Stat(fileName)
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			_, _ = fmt.Fprintln(w, "File not found.")
+			continue
+		}
+		goal := map[string]any{
+			"Action": "download",
+			"Information": DownloadInfo{
+				FileName: fileName,
+				Length:   fileInfo.Size(),
+			},
+		}
+		goals = append(goals, goal)
+	}
+
+	// 响铃
+	if ringInfo, ok := deviceRingList[r.RemoteAddr]; ok {
+		goal := map[string]any{
+			"Action":      "ring",
+			"Information": ringInfo,
+		}
+		goals = append(goals, goal)
+	}
+
+	// 震动
+	if vibrateDuration, ok := deviceVibrateList[r.RemoteAddr]; ok {
+		goal := map[string]any{
+			"Action":      "vibrate",
+			"Information": vibrateDuration,
+		}
+		goals = append(goals, goal)
+	}
+
+}
+
+// downloadHandler 处理文件下载请求
+func fileDownloadHandler(w http.ResponseWriter, r *http.Request) {
+	fileName := r.FormValue("fileName")
+	if fileName == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = fmt.Fprintln(w, "File name is required.")
+		return
+	}
+	if !stringInSlice(fileName, deviceDownloadList[r.RemoteAddr]) {
+		w.WriteHeader(http.StatusNotFound)
+		_, _ = fmt.Fprintln(w, "File is not in download list.")
+		return
+	}
+	// 检查文件存在
+	_, err := os.Stat(fileName)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		_, _ = fmt.Fprintln(w, "File not found.")
+		array := deviceDownloadList[r.RemoteAddr]
+		// remove if value = fileName
+		for i, v := range array {
+			if v == fileName {
+				array = append(array[:i], array[i+1:]...)
+				break
+			}
+		}
+		deviceDownloadList[r.RemoteAddr] = array
+		return
+	}
+	readingFile, err := os.Open(fileName)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = fmt.Fprintln(w, "File open error.")
+		return
+	}
+	defer readingFile.Close()
+	reader := bufio.NewReader(readingFile)
+	buffer := make([]byte, 1024*1024)
+	for {
+		n, err := reader.Read(buffer)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = fmt.Fprintln(w, "File read error.")
+			return
+		}
+		if n == 0 {
+			break
+		}
+		_, err = w.Write(buffer[:n])
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = fmt.Fprintln(w, "File write error.")
+			return
+		}
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+// fileUploadHandler 处理文件上传请求
+func fileUploadHandler(w http.ResponseWriter, r *http.Request) {
+	// 计算远程主机地址的MD5值
+	remoteAddrMD5 := md5.Sum([]byte(r.RemoteAddr))
+	// 转换为无横杠十六进制
+	remoteAddrMD5String := fmt.Sprintf("%x", remoteAddrMD5)
+	// 创建UploadFiles目录
+	if err := os.Mkdir("./uploadFiles/"+remoteAddrMD5String, os.ModePerm); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = fmt.Fprintln(w, "File upload error.")
+		return
+	}
+	formFile, fileHeader, err := r.FormFile("formFile")
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = fmt.Fprintln(w, "File is required.")
+		return
+	}
+
+	// 打开并写入文件
+	writingFile, err := os.OpenFile("./uploadFiles/"+remoteAddrMD5String+"/"+fileHeader.Filename, os.O_WRONLY|os.O_CREATE, 0644)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = fmt.Fprintln(w, "File save error.")
+		return
+	}
+	defer writingFile.Close()
+	writer := bufio.NewWriter(writingFile)
+	buffer := make([]byte, 1024*1024)
+	for {
+		n, err := formFile.Read(buffer)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = fmt.Fprintln(w, "File read error.")
+			return
+		}
+		if n == 0 {
+			break
+		}
+		_, err = writer.Write(buffer[:n])
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = fmt.Fprintln(w, "File save error.")
+			return
+		}
+	}
+	err = writer.Flush()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+// photoCountHandler 处理照片数量设置请求
+func photoCountHandler(w http.ResponseWriter, r *http.Request) {
+	countString := r.FormValue("count")
+	if countString == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = fmt.Fprintln(w, "Photo count is required.")
+		return
+	}
+	count, err := strconv.Atoi(countString)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = fmt.Fprintln(w, "Photo count is invalid.")
+		return
+	}
+	devicePhotos[r.RemoteAddr] = make([]string, count)
+}
+
+// photoUploadHandler 处理照片上传请求
+func photoUploadHandler(w http.ResponseWriter, r *http.Request) {
 	indexString := r.FormValue("index")
 	if indexString == "" {
+		w.WriteHeader(http.StatusBadRequest)
 		_, _ = fmt.Fprintln(w, "Photo index is required.")
 		return
 	}
 	index, err := strconv.Atoi(indexString)
 	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		_, _ = fmt.Fprintln(w, "Photo index is invalid.")
 		return
 	}
 	photoFile, photoHeader, err := r.FormFile("photo")
 	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		_, _ = fmt.Fprintln(w, "Photo is required.")
 		return
 	}
 	photoFileContent := make([]byte, photoHeader.Size)
 	n, err := photoFile.Read(photoFileContent)
 	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = fmt.Fprintln(w, "Photo read error.")
 		return
 	}
 	if n != int(photoHeader.Size) {
+		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = fmt.Fprintln(w, "Photo read error.")
 		return
 	}
 	devicePhotos[r.RemoteAddr][index] = string(photoFileContent)
+	w.WriteHeader(http.StatusOK)
 	_, _ = fmt.Fprintln(w, "OK.")
 }
 
 // powerPointHandler 处理PPT操作请求
 func powerPointHandler(w http.ResponseWriter, r *http.Request) {
-	// 检查Token
-	if r.FormValue("token") != connectedDevices[r.RemoteAddr].Token.String() {
-		w.WriteHeader(http.StatusUnauthorized)
-		_, _ = fmt.Fprintln(w, "Token is not matched. Please connect again.")
-		return
-	}
-
-	// 检查是否允许操作PPT
-	if !connectedDevices[r.RemoteAddr].AllowPowerPoint {
-		_, _ = fmt.Fprintln(w, "PowerPoint is not allowed.")
-		return
-	}
-
 	// 检查是否为切换PPT请求
 	if r.FormValue("direction") == "next" {
 		switchPowerPoint(Next)
@@ -362,77 +391,7 @@ func powerPointHandler(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-type SwitchDirection int
-
-const (
-	Next SwitchDirection = iota
-	Previous
-)
-
-// switchPowerPoint 切换PPT
-func switchPowerPoint(direction SwitchDirection) {
-	if direction == Next {
-		keyBonding.SetKeys(keybd_event.VK_RIGHT)
-	} else {
-		keyBonding.SetKeys(keybd_event.VK_LEFT)
-	}
-	if err := keyBonding.Launching(); err != nil {
-		panic(err)
-	}
-	return
-}
-
-func photoHandler(w http.ResponseWriter, r *http.Request) {
-	// 检查Token
-	if r.FormValue("token") != connectedDevices[r.RemoteAddr].Token.String() {
-		w.WriteHeader(http.StatusUnauthorized)
-		_, _ = fmt.Fprintln(w, "Token is not matched. Please connect again.")
-		return
-	}
-
-	if r.FormValue("action") == "path" {
-		if r.FormValue("path") == "" {
-			_, _ = fmt.Fprintln(w, "Path is required.")
-			return
-		}
-		// 创建新路径
-		if err := os.Mkdir("./album/"+r.RemoteAddr+"/"+r.FormValue("path"), os.ModePerm); err != nil {
-			_, _ = fmt.Fprintln(w, "OK.")
-			return
-		}
-		_, _ = fmt.Fprintln(w, "OK.")
-		return
-	}
-
-	if r.FormValue("action") == "file" {
-		content, handler, err := r.FormFile("file")
-		if err != nil {
-			_, _ = fmt.Fprintln(w, "File is required.")
-			return
-		}
-		// 保存文件
-		fileBytes, err := io.ReadAll(content)
-		if err != nil {
-			_, _ = fmt.Fprintln(w, "File read error.")
-			return
-		}
-		err = os.WriteFile("./album/"+r.RemoteAddr+"/"+r.FormValue("path")+"/"+handler.Filename, fileBytes, 0644)
-	}
-}
-
-//func frontendGetAlbumCountHandler(w http.ResponseWriter, r *http.Request) {
-//	remoteAddr := r.FormValue("RemoteAddress")
-//	if remoteAddr == "" {
-//		_, _ = fmt.Fprintln(w, "Remote address is required.")
-//		return
-//	}
-//	albumCount[remoteAddr] = -1
-//	for albumCount[remoteAddr] == -1 {
-//		time.Sleep(100 * time.Millisecond)
-//	}
-//	_, _ = fmt.Fprintln(w, albumCount[remoteAddr])
-//}
-
+// cursorTextHandler 处理光标文本设置请求
 func cursorTextHandler(w http.ResponseWriter, r *http.Request) {
 	// 检查Token
 	if r.FormValue("token") != connectedDevices[r.RemoteAddr].Token.String() {
@@ -486,10 +445,30 @@ func stringInSlice(str string, list []string) bool {
 	return false
 }
 
-func powerPointDemoHandler(w http.ResponseWriter, r *http.Request) {
-	for {
-		switchPowerPoint(Next)
-		time.Sleep(5 * time.Second)
+//func powerPointDemoHandler(w http.ResponseWriter, r *http.Request) {
+//	for {
+//		switchPowerPoint(Next)
+//		time.Sleep(5 * time.Second)
+//	}
+//	return
+//}
+
+type SwitchDirection int
+
+const (
+	Next SwitchDirection = iota
+	Previous
+)
+
+// switchPowerPoint 切换PPT
+func switchPowerPoint(direction SwitchDirection) {
+	if direction == Next {
+		keyBonding.SetKeys(keybd_event.VK_RIGHT)
+	} else {
+		keyBonding.SetKeys(keybd_event.VK_LEFT)
+	}
+	if err := keyBonding.Launching(); err != nil {
+		panic(err)
 	}
 	return
 }

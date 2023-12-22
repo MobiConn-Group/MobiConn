@@ -12,6 +12,8 @@ const router = createRouter({
     }, {
         path: '/device', component: DevicePage
     }, {
+        path: '/photo', component: PhotoPage
+    },{
         path: '/photo/:address', component: PhotoPage, name: 'photo'
     }, {
         path: '/hello', component: HelloWorld

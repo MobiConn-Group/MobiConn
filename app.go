@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
+	"os"
 	"time"
 )
 
@@ -21,6 +22,10 @@ func NewApp() *App {
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+}
+
+func (a *App) Exit() {
+	os.Exit(0)
 }
 
 // Greet returns a greeting for the given name
@@ -111,9 +116,11 @@ func (a *App) SendVibrate(remoteAddr string, duration int) {
 }
 
 func (a *App) GetPhotoCount(remoteAddr string) int {
+	fmt.Println("向", remoteAddr, "请求照片数量")
 	return len(devicePhotos[remoteAddr])
 }
 
 func (a *App) GetPhoto(remoteAddr string, photoIndex int) string {
+	fmt.Println("向", remoteAddr, "请求照片", photoIndex)
 	return devicePhotos[remoteAddr][photoIndex]
 }

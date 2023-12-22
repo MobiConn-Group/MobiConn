@@ -1,5 +1,9 @@
 <script setup>
+import {Exit} from "../../wailsjs/go/main/App.js";
 
+function exit() {
+  Exit()
+}
 </script>
 
 <template>
@@ -7,27 +11,33 @@
     <ul>
       <li>
         <router-link to="/device">
-          <i class="fas fa-file-upload"></i>
+          <i class="fas fa-mobile"></i>
           移动设备
         </router-link>
       </li>
       <li>
-        <router-link to="/photo">
-          <i class="fas fa-images"></i>
-          查看手机照片
-        </router-link>
+        <a @click="exit()" href="#">
+          <i class="fas fa-door-open"></i>
+          退出
+        </a>
       </li>
-      <li><a href="./settings.html"><i class="fas fa-cogs"></i>设置</a></li>
-      <li>
-        <router-link to="/hello">
-          <i class="fas fa-file-upload"></i>
-          你好
-        </router-link>
-      </li>
+<!--      <li>-->
+<!--        <router-link to="/photo">-->
+<!--          <i class="fas fa-images"></i>-->
+<!--          查看手机照片-->
+<!--        </router-link>-->
+<!--      </li>-->
+<!--      <li><a href="./settings.html"><i class="fas fa-cogs"></i>设置</a></li>-->
+<!--      <li>-->
+<!--        <router-link to="/hello">-->
+<!--          <i class="fas fa-file-upload"></i>-->
+<!--          你好-->
+<!--        </router-link>-->
+<!--      </li>-->
     </ul>
-    <div class="signal-container">
-      <div class="signal-icon"><i class="fas fa-signal"></i></div>
-    </div>
+<!--    <div class="signal-container">-->
+<!--      <div class="signal-icon"><i class="fas fa-signal"></i></div>-->
+<!--    </div>-->
   </div>
 </template>
 
