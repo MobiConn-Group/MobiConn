@@ -393,18 +393,18 @@ func powerPointHandler(w http.ResponseWriter, r *http.Request) {
 
 // cursorTextHandler 处理光标文本设置请求
 func cursorTextHandler(w http.ResponseWriter, r *http.Request) {
-	// 检查Token
-	if r.FormValue("token") != connectedDevices[r.RemoteAddr].Token.String() {
-		w.WriteHeader(http.StatusUnauthorized)
-		_, _ = fmt.Fprintln(w, "Token is not matched. Please connect again.")
-		return
-	}
+	//// 检查Token
+	//if r.FormValue("token") != connectedDevices[r.RemoteAddr].Token.String() {
+	//	w.WriteHeader(http.StatusUnauthorized)
+	//	_, _ = fmt.Fprintln(w, "Token is not matched. Please connect again.")
+	//	return
+	//}
 
-	// 检查是否允许发送光标文本
-	if !connectedDevices[r.RemoteAddr].AllowCursorText {
-		_, _ = fmt.Fprintln(w, "Cursor text is not allowed.")
-		return
-	}
+	//// 检查是否允许发送光标文本
+	//if !connectedDevices[r.RemoteAddr].AllowCursorText {
+	//	_, _ = fmt.Fprintln(w, "Cursor text is not allowed.")
+	//	return
+	//}
 
 	// 从Query中获取光标文本
 	cursorText := r.FormValue("cursorText")
