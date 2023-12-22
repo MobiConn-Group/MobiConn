@@ -5,8 +5,10 @@ import (
 	"crypto/md5"
 	"embed"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
+	"io"
 	"net/http"
 	"os"
 	"strconv"
@@ -85,13 +87,28 @@ func loadBase64Picture(fileName string) string {
 	return base64.StdEncoding.EncodeToString(fileContent)
 }
 
+func addrToHost(addr string) string {
+	// 找到冒号
+	colonIndex := -1
+	for i, c := range addr {
+		if c == ':' {
+			colonIndex = i
+			break
+		}
+	}
+	if colonIndex == -1 {
+		return addr
+	}
+	return addr[:colonIndex]
+}
+
 func main() {
-	base64Picture := loadBase64Picture("C:\\Users\\ab123\\Pictures\\艾丝妲\\asta.png")
-	fmt.Println(base64Picture)
-	devicePhotos["localhost"] = append(devicePhotos["localhost"], base64Picture)
-	base64Picture = loadBase64Picture("C:\\Users\\ab123\\Pictures\\个人头像\\美乐蒂玩电脑.jpg")
-	fmt.Println(base64Picture)
-	devicePhotos["localhost"] = append(devicePhotos["localhost"], base64Picture)
+	//base64Picture := loadBase64Picture("C:\\Users\\ab123\\Pictures\\艾丝妲\\asta.png")
+	//fmt.Println(base64Picture)
+	//devicePhotos["localhost"] = append(devicePhotos["localhost"], base64Picture)
+	//base64Picture = loadBase64Picture("C:\\Users\\ab123\\Pictures\\个人头像\\美乐蒂玩电脑.jpg")
+	//fmt.Println(base64Picture)
+	//devicePhotos["localhost"] = append(devicePhotos["localhost"], base64Picture)
 
 	// Create an instance of the app structure
 	app := NewApp()
@@ -165,50 +182,51 @@ func greetingHandler(w http.ResponseWriter, r *http.Request) {
 	_, _ = fmt.Fprintln(w, message)
 }
 
+type Goal struct {
+	Action      string `json:"action"`
+	Information string `json:"information"`
+}
+
 // heartbeatHandler 处理心跳请求
 func heartbeatHandler(w http.ResponseWriter, r *http.Request) {
-	device := connectedDevices[r.RemoteAddr]
+	device := connectedDevices[addrToHost(r.RemoteAddr)]
 	device.LastConnection = time.Now()
-	connectedDevices[r.RemoteAddr] = device
+	connectedDevices[addrToHost(r.RemoteAddr)] = device
 
-	var goals []any
+	//goals := []Goal{{Action: "123", Information: "456"}}
+	goals := []Goal{}
 
 	// 文件下载
-	for _, fileName := range deviceDownloadList[r.RemoteAddr] {
-		fileInfo, err := os.Stat(fileName)
+	for _, fileName := range deviceDownloadList[addrToHost(r.RemoteAddr)] {
+		_, err := os.Stat(fileName)
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)
 			_, _ = fmt.Fprintln(w, "File not found.")
 			continue
 		}
-		goal := map[string]any{
-			"Action": "download",
-			"Information": DownloadInfo{
-				FileName: fileName,
-				Length:   fileInfo.Size(),
-			},
-		}
-		goals = append(goals, goal)
+		goals = append(goals, Goal{Action: "download", Information: fileName})
+		delete(deviceDownloadList, addrToHost(r.RemoteAddr))
 	}
 
 	// 响铃
-	if ringInfo, ok := deviceRingList[r.RemoteAddr]; ok {
-		goal := map[string]any{
-			"Action":      "ring",
-			"Information": ringInfo,
-		}
-		goals = append(goals, goal)
+	if ringInfo, ok := deviceRingList[addrToHost(r.RemoteAddr)]; ok {
+		goals = append(goals, Goal{Action: "ring", Information: ringInfo.Tone})
+		delete(deviceRingList, addrToHost(r.RemoteAddr))
 	}
 
 	// 震动
-	if vibrateDuration, ok := deviceVibrateList[r.RemoteAddr]; ok {
-		goal := map[string]any{
-			"Action":      "vibrate",
-			"Information": vibrateDuration,
-		}
-		goals = append(goals, goal)
+	if vibrateDuration, ok := deviceVibrateList[addrToHost(r.RemoteAddr)]; ok {
+		goals = append(goals, Goal{Action: "vibration", Information: strconv.Itoa(vibrateDuration)})
+		delete(deviceVibrateList, addrToHost(r.RemoteAddr))
 	}
 
+	// 返回
+	marshal, err := json.Marshal(goals)
+	if err != nil {
+		_, _ = fmt.Fprintln(w, "JSON marshal error.")
+		return
+	}
+	_, _ = fmt.Fprintln(w, string(marshal))
 }
 
 // downloadHandler 处理文件下载请求
@@ -219,17 +237,17 @@ func fileDownloadHandler(w http.ResponseWriter, r *http.Request) {
 		_, _ = fmt.Fprintln(w, "File name is required.")
 		return
 	}
-	if !stringInSlice(fileName, deviceDownloadList[r.RemoteAddr]) {
-		w.WriteHeader(http.StatusNotFound)
-		_, _ = fmt.Fprintln(w, "File is not in download list.")
-		return
-	}
+	//if !stringInSlice(fileName, deviceDownloadList[addrToHost(r.RemoteAddr)]) {
+	//	w.WriteHeader(http.StatusNotFound)
+	//	_, _ = fmt.Fprintln(w, "File is not in download list.")
+	//	return
+	//}
 	// 检查文件存在
 	_, err := os.Stat(fileName)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		_, _ = fmt.Fprintln(w, "File not found.")
-		array := deviceDownloadList[r.RemoteAddr]
+		array := deviceDownloadList[addrToHost(r.RemoteAddr)]
 		// remove if value = fileName
 		for i, v := range array {
 			if v == fileName {
@@ -237,7 +255,7 @@ func fileDownloadHandler(w http.ResponseWriter, r *http.Request) {
 				break
 			}
 		}
-		deviceDownloadList[r.RemoteAddr] = array
+		deviceDownloadList[addrToHost(r.RemoteAddr)] = array
 		return
 	}
 	readingFile, err := os.Open(fileName)
@@ -251,6 +269,10 @@ func fileDownloadHandler(w http.ResponseWriter, r *http.Request) {
 	buffer := make([]byte, 1024*1024)
 	for {
 		n, err := reader.Read(buffer)
+		if err == io.EOF {
+			_, _ = w.Write(buffer[:n])
+			break
+		}
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			_, _ = fmt.Fprintln(w, "File read error.")
@@ -272,7 +294,7 @@ func fileDownloadHandler(w http.ResponseWriter, r *http.Request) {
 // fileUploadHandler 处理文件上传请求
 func fileUploadHandler(w http.ResponseWriter, r *http.Request) {
 	// 计算远程主机地址的MD5值
-	remoteAddrMD5 := md5.Sum([]byte(r.RemoteAddr))
+	remoteAddrMD5 := md5.Sum([]byte(addrToHost(r.RemoteAddr)))
 	// 转换为无横杠十六进制
 	remoteAddrMD5String := fmt.Sprintf("%x", remoteAddrMD5)
 	// 创建UploadFiles目录
@@ -325,6 +347,7 @@ func fileUploadHandler(w http.ResponseWriter, r *http.Request) {
 
 // photoCountHandler 处理照片数量设置请求
 func photoCountHandler(w http.ResponseWriter, r *http.Request) {
+	_, _ = fmt.Fprintln(w, "Photo count handler")
 	countString := r.FormValue("count")
 	if countString == "" {
 		w.WriteHeader(http.StatusBadRequest)
@@ -337,44 +360,53 @@ func photoCountHandler(w http.ResponseWriter, r *http.Request) {
 		_, _ = fmt.Fprintln(w, "Photo count is invalid.")
 		return
 	}
-	devicePhotos[r.RemoteAddr] = make([]string, count)
+	devicePhotos[addrToHost(r.RemoteAddr)] = make([]string, count)
+	w.WriteHeader(http.StatusOK)
+	host := addrToHost(r.RemoteAddr)
+	_, _ = fmt.Fprintln(w, host+"的照片数量已设置为"+countString)
 }
 
 // photoUploadHandler 处理照片上传请求
 func photoUploadHandler(w http.ResponseWriter, r *http.Request) {
 	indexString := r.FormValue("index")
 	if indexString == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		_, _ = fmt.Fprintln(w, "Photo index is required.")
+		//w.WriteHeader(http.StatusBadRequest)
+		_, _ = fmt.Fprintln(w, "Index is required.")
 		return
 	}
 	index, err := strconv.Atoi(indexString)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		_, _ = fmt.Fprintln(w, "Photo index is invalid.")
+		//w.WriteHeader(http.StatusBadRequest)
+		_, _ = fmt.Fprintln(w, "Index is invalid.")
 		return
 	}
-	photoFile, photoHeader, err := r.FormFile("photo")
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		_, _ = fmt.Fprintln(w, "Photo is required.")
-		return
+
+	// 读取照片文件
+	// r.Body.Read()
+
+	photo := []byte{}
+	for {
+		photoFileContent := make([]byte, 1024*1024)
+		n, err := r.Body.Read(photoFileContent)
+		if err == io.EOF {
+			photo = append(photo, photoFileContent[:n]...)
+			break
+		}
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = fmt.Fprintln(w, "File read error.")
+			return
+		}
+		photo = append(photo, photoFileContent[:n]...)
 	}
-	photoFileContent := make([]byte, photoHeader.Size)
-	n, err := photoFile.Read(photoFileContent)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, _ = fmt.Fprintln(w, "Photo read error.")
-		return
-	}
-	if n != int(photoHeader.Size) {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, _ = fmt.Fprintln(w, "Photo read error.")
-		return
-	}
-	devicePhotos[r.RemoteAddr][index] = string(photoFileContent)
-	w.WriteHeader(http.StatusOK)
-	_, _ = fmt.Fprintln(w, "OK.")
+	encoded := base64.StdEncoding.EncodeToString(photo)
+	// base64加密
+	devicePhotos[addrToHost(r.RemoteAddr)][index] = encoded
+	//devicePhotos[addrToHost(r.RemoteAddr)][index] = photo
+	//w.WriteHeader(http.StatusOK)
+	host := addrToHost(r.RemoteAddr)
+	_, _ = fmt.Fprintln(w, host+"的第"+indexString+"张照片已上传")
+	_, _ = fmt.Fprintln(w, "照片内容为："+encoded)
 }
 
 // powerPointHandler 处理PPT操作请求
@@ -394,14 +426,14 @@ func powerPointHandler(w http.ResponseWriter, r *http.Request) {
 // cursorTextHandler 处理光标文本设置请求
 func cursorTextHandler(w http.ResponseWriter, r *http.Request) {
 	//// 检查Token
-	//if r.FormValue("token") != connectedDevices[r.RemoteAddr].Token.String() {
+	//if r.FormValue("token") != connectedDevices[addrToHost(r.RemoteAddr)].Token.String() {
 	//	w.WriteHeader(http.StatusUnauthorized)
 	//	_, _ = fmt.Fprintln(w, "Token is not matched. Please connect again.")
 	//	return
 	//}
 
 	//// 检查是否允许发送光标文本
-	//if !connectedDevices[r.RemoteAddr].AllowCursorText {
+	//if !connectedDevices[addrToHost(r.RemoteAddr)].AllowCursorText {
 	//	_, _ = fmt.Fprintln(w, "Cursor text is not allowed.")
 	//	return
 	//}
