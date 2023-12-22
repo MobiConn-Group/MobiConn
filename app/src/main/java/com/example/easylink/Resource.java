@@ -10,7 +10,7 @@ public class Resource extends Application {
     private List<File> images;
     private String ip;
     private String username;
-    private List<File> uploadFiles;
+    private List<String> uploadFiles;
 
     public String getToken() {
         return token;
@@ -44,11 +44,11 @@ public class Resource extends Application {
         this.username = username;
     }
 
-    public List<File> getUploadFiles() {
+    public List<String> getUploadFiles() {
         return uploadFiles;
     }
 
-    public void setUploadFiles(List<File> uploadFiles) {
+    public void setUploadFiles(List<String> uploadFiles) {
         this.uploadFiles = uploadFiles;
     }
 

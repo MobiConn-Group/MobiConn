@@ -59,10 +59,10 @@ public class file_open extends AppCompatActivity {
                         if (inputStream != null) {
                             File file = createFileFromInputStream(inputStream, displayName);
                             Resource resource =  (Resource)getApplication();
-                            List<File> uploadFiles = resource.getUploadFiles();
-                            uploadFiles.add(file);
+                            List<String> uploadFiles = resource.getUploadFiles();
+                            uploadFiles.add(file.getName());
                             resource.setUploadFiles(uploadFiles);
-//                            FileUtil.uploadFile(file, url);
+                            FileUtil.uploadFile(file, url);
                         } else {
                             Toast.makeText(getApplicationContext(), "输入流获取失败", Toast.LENGTH_SHORT).show();
                         }

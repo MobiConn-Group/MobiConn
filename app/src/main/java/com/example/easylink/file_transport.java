@@ -75,13 +75,6 @@ public class file_transport extends AppCompatActivity {
                 intent.setClass(file_transport.this, file_open.class);
                 startActivity(intent);
 
-                List<File> uploadFiles = resource.getUploadFiles();
-                StringBuilder fileShowText = new StringBuilder("已添加的文件:\n");
-                for (File file : uploadFiles) {
-                    fileShowText.append(file.getName()).append("\n");
-                }
-                TextView fileShow = findViewById(R.id.file_show);
-                fileShow.setText(fileShowText);
             }
         });
 
@@ -89,8 +82,16 @@ public class file_transport extends AppCompatActivity {
         fileTransButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-
+                List<String> uploadFiles = resource.getUploadFiles();
+                if (uploadFiles == null) {
+                    return ;
+                }
+                StringBuilder fileShowText = new StringBuilder("已添加的文件:\n");
+                for (String fileName : uploadFiles) {
+                    fileShowText.append(fileName).append("\n");
+                }
+                TextView fileShow = findViewById(R.id.file_show);
+                fileShow.setText(fileShowText);
             }
         });
 

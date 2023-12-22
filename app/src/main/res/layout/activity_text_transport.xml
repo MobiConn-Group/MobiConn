@@ -42,7 +42,7 @@
         android:background="#FFFBFE" />
 
     <EditText
-        android:id="@+id/editTextTextMultiLine"
+        android:id="@+id/text_input"
         android:layout_width="351dp"
         android:layout_height="113dp"
         android:background="@drawable/text_input"
