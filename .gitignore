@@ -4,3 +4,4 @@ frontend/dist
 /download/
 /upload/
 /frontend/wailsjs/
+/frontend/vite.config.js.timestamp-*.mjs
