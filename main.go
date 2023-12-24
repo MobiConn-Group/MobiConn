@@ -65,7 +65,12 @@ func loadBase64Picture(fileName string) string {
 	if err != nil {
 		panic(err)
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			panic(err)
+		}
+	}(file)
 	fileInfo, err := file.Stat()
 	if err != nil {
 		panic(err)
@@ -188,7 +193,7 @@ func httpServer() error {
 }
 
 // greetingHandler 处理问候请求
-func greetingHandler(w http.ResponseWriter, r *http.Request) {
+func greetingHandler(w http.ResponseWriter, _ *http.Request) {
 	message := "Hello World!"
 	_, _ = fmt.Fprintln(w, message)
 }
@@ -205,6 +210,7 @@ func heartbeatHandler(w http.ResponseWriter, r *http.Request) {
 	connectedDevices[addrToHost(r.RemoteAddr)] = device
 
 	//goals := []Goal{{Action: "123", Information: "456"}}
+	//goland:noinspection GoPreferNilSlice
 	goals := []Goal{}
 
 	// 文件下载
@@ -248,11 +254,6 @@ func fileDownloadHandler(w http.ResponseWriter, r *http.Request) {
 		_, _ = fmt.Fprintln(w, "File name is required.")
 		return
 	}
-	//if !stringInSlice(fileName, deviceDownloadList[addrToHost(r.RemoteAddr)]) {
-	//	w.WriteHeader(http.StatusNotFound)
-	//	_, _ = fmt.Fprintln(w, "File is not in download list.")
-	//	return
-	//}
 	// 检查文件存在
 	fileInfo, err := os.Stat(fileName)
 	if err != nil {
@@ -276,7 +277,14 @@ func fileDownloadHandler(w http.ResponseWriter, r *http.Request) {
 		_, _ = fmt.Fprintln(w, "File open error.")
 		return
 	}
-	defer readingFile.Close()
+	defer func(readingFile *os.File) {
+		err := readingFile.Close()
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = fmt.Fprintln(w, "File close error.")
+			return
+		}
+	}(readingFile)
 	reader := bufio.NewReader(readingFile)
 	buffer := make([]byte, 1024*1024)
 	for {
@@ -426,6 +434,7 @@ func photoUploadHandler(w http.ResponseWriter, r *http.Request) {
 	// 读取照片文件
 	// r.Body.Read()
 
+	//goland:noinspection GoPreferNilSlice
 	photo := []byte{}
 	for {
 		photoFileContent := make([]byte, 1024*1024)
@@ -467,27 +476,12 @@ func powerPointHandler(w http.ResponseWriter, r *http.Request) {
 
 // cursorTextHandler 处理光标文本设置请求
 func cursorTextHandler(w http.ResponseWriter, r *http.Request) {
-	//// 检查Token
-	//if r.FormValue("token") != connectedDevices[addrToHost(r.RemoteAddr)].Token.String() {
-	//	w.WriteHeader(http.StatusUnauthorized)
-	//	_, _ = fmt.Fprintln(w, "Token is not matched. Please connect again.")
-	//	return
-	//}
-
-	//// 检查是否允许发送光标文本
-	//if !connectedDevices[addrToHost(r.RemoteAddr)].AllowCursorText {
-	//	_, _ = fmt.Fprintln(w, "Cursor text is not allowed.")
-	//	return
-	//}
-
-	// 从Query中获取光标文本
 	cursorText := r.FormValue("text")
 	if cursorText == "" {
 		_, _ = fmt.Fprintln(w, "Cursor text is required.")
 		return
 	}
 
-	// 在服务端机器上显示光标文本
 	setCursorText(cursorText)
 	fmt.Println("接收到光标文本：" + cursorText)
 }
