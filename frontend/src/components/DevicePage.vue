@@ -4,7 +4,7 @@ import {GetDevices, OpenAndSendFile, SendRing} from "../../wailsjs/go/main/App.j
 
 const data = reactive({
   devices: [
-    {address: "qwerty", connected: false}
+    // {address: "qwerty", connected: false}
     // 示例数据
     // {address: '设备1地址', connected: false},
     // {address: '设备2地址', connected: false},
@@ -16,7 +16,7 @@ setInterval(() => {
   GetDevices().then(result => {
     data.devices = []
     for (const dev in result) {
-      data.devices.push({address: result[dev].address, connected: result[dev].connected})
+      data.devices.push({address: result[dev].address, connected: result[dev].connected, dropdownOpen: false})
     }
   })
 }, 100)
@@ -26,9 +26,9 @@ function sendFile(device) {
   OpenAndSendFile(device.address)
 }
 
-function sendRing(device) {
+function sendRing(device, duration) {
   // 发送响铃的逻辑
-  SendRing(device.address, 'ring.mp3', 5000)
+  SendRing(device.address, 'ring.mp3', duration)
 }
 </script>
 
@@ -62,10 +62,30 @@ function sendRing(device) {
             </router-link>
           </td>
           <td>
-            <button @click="sendFile(device)">发送文件</button>
+            <button @click="sendFile(device)" :disabled="device.address === 'localhost'">发送文件</button>
           </td>
           <td>
-            <button @click="sendRing(device)">发送响铃</button>
+            <div>
+              <button :disabled="device.address === 'localhost'" @click="sendRing(device, 1000)">
+                1秒
+              </button>
+              <button :disabled="device.address === 'localhost'" style="margin-left: 10px"
+                      @click="sendRing(device, 5 * 1000)">
+                5秒
+              </button>
+              <button :disabled="device.address === 'localhost'" style="margin-left: 10px"
+                      @click="sendRing(device, 10 * 1000)">
+                10秒
+              </button>
+              <button :disabled="device.address === 'localhost'" style="margin-left: 10px"
+                      @click="sendRing(device, 30 * 1000)">
+                30秒
+              </button>
+              <button :disabled="device.address === 'localhost'" style="margin-left: 10px"
+                      @click="sendRing(device, 60 * 1000)">
+                1分钟
+              </button>
+            </div>
           </td>
         </tr>
         </tbody>

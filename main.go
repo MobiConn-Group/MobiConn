@@ -7,30 +7,30 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/go-vgo/robotgo"
 	"github.com/google/uuid"
+	"github.com/micmonay/keybd_event"
+	"github.com/wailsapp/wails/v2"
+	"github.com/wailsapp/wails/v2/pkg/options"
+	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
 	"io"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
-
-	"github.com/go-toast/toast"
-	"github.com/micmonay/keybd_event"
-
-	"github.com/wailsapp/wails/v2"
-	"github.com/wailsapp/wails/v2/pkg/options"
-	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
 )
 
 //go:embed all:frontend/dist
 var assets embed.FS
+
+var app *App
 
 // 保存当前已连接的设备
 var connectedDevices = map[string]Device{}
 
 // 保存每个设备的照片，键为设备主机地址，值为照片文件Base64编码
 var devicePhotos = map[string][]string{
-	"localhost": {"(Base64 encoded photo 1)", "(Base64 encoded photo 2)", "(Base64 encoded photo 3)"},
+	"localhost": {},
 }
 
 // 维护每个设备的下载列表
@@ -50,12 +50,6 @@ type Device struct {
 	AllowCursorText bool
 	AllowPowerPoint bool
 	Token           uuid.UUID
-}
-
-// DownloadInfo 表示下载请求的信息。
-type DownloadInfo struct {
-	FileName string
-	Length   int64
 }
 
 // RingInfo 表示响铃任务的信息。
@@ -87,6 +81,26 @@ func loadBase64Picture(fileName string) string {
 	return base64.StdEncoding.EncodeToString(fileContent)
 }
 
+func loadLocalPhotos() {
+	_, err := os.Stat("./local-photos")
+	if err != nil {
+		err = os.Mkdir("./local-photos", os.ModePerm)
+		if err != nil {
+			panic(err)
+		}
+	}
+	files, err := os.ReadDir("./local-photos")
+	if err != nil {
+		panic(err)
+	}
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+		devicePhotos["localhost"] = append(devicePhotos["localhost"], loadBase64Picture("./local-photos/"+file.Name()))
+	}
+}
+
 func addrToHost(addr string) string {
 	// 找到冒号
 	colonIndex := -1
@@ -103,15 +117,11 @@ func addrToHost(addr string) string {
 }
 
 func main() {
-	//base64Picture := loadBase64Picture("C:\\Users\\ab123\\Pictures\\艾丝妲\\asta.png")
-	//fmt.Println(base64Picture)
-	//devicePhotos["localhost"] = append(devicePhotos["localhost"], base64Picture)
-	//base64Picture = loadBase64Picture("C:\\Users\\ab123\\Pictures\\个人头像\\美乐蒂玩电脑.jpg")
-	//fmt.Println(base64Picture)
-	//devicePhotos["localhost"] = append(devicePhotos["localhost"], base64Picture)
+	// 加载本地照片
+	loadLocalPhotos()
 
 	// Create an instance of the app structure
-	app := NewApp()
+	app = NewApp()
 
 	// Create http server
 	err := httpServer()
@@ -139,6 +149,7 @@ func main() {
 		println("Error:", err.Error())
 	}
 
+	// 初始化键盘事件
 	if keyBonding, err = keybd_event.NewKeyBonding(); err != nil {
 		panic(err)
 	}
@@ -156,7 +167,7 @@ func httpServer() error {
 	mux.HandleFunc("/photo/count", photoCountHandler)
 	mux.HandleFunc("/photo/upload", photoUploadHandler)
 	mux.HandleFunc("/ppt", powerPointHandler)
-	mux.HandleFunc("/cursorText", cursorTextHandler)
+	mux.HandleFunc("/cursor-text", cursorTextHandler)
 
 	//mux.HandleFunc("/download", downloadHandler)
 	//mux.HandleFunc("/upload", uploadHandler)
@@ -210,7 +221,7 @@ func heartbeatHandler(w http.ResponseWriter, r *http.Request) {
 
 	// 响铃
 	if ringInfo, ok := deviceRingList[addrToHost(r.RemoteAddr)]; ok {
-		goals = append(goals, Goal{Action: "ring", Information: ringInfo.Tone})
+		goals = append(goals, Goal{Action: "ring", Information: strconv.Itoa(ringInfo.Duration)})
 		delete(deviceRingList, addrToHost(r.RemoteAddr))
 	}
 
@@ -243,7 +254,7 @@ func fileDownloadHandler(w http.ResponseWriter, r *http.Request) {
 	//	return
 	//}
 	// 检查文件存在
-	_, err := os.Stat(fileName)
+	fileInfo, err := os.Stat(fileName)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		_, _ = fmt.Fprintln(w, "File not found.")
@@ -258,6 +269,7 @@ func fileDownloadHandler(w http.ResponseWriter, r *http.Request) {
 		deviceDownloadList[addrToHost(r.RemoteAddr)] = array
 		return
 	}
+	w.Header().Set("Content-Length", strconv.FormatInt(fileInfo.Size(), 10))
 	readingFile, err := os.Open(fileName)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -293,35 +305,63 @@ func fileDownloadHandler(w http.ResponseWriter, r *http.Request) {
 
 // fileUploadHandler 处理文件上传请求
 func fileUploadHandler(w http.ResponseWriter, r *http.Request) {
+	host := addrToHost(r.RemoteAddr)
+	fileName := r.FormValue("fileName")
+	if fileName == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = fmt.Fprintln(w, "File name is required.")
+		return
+	}
 	// 计算远程主机地址的MD5值
-	remoteAddrMD5 := md5.Sum([]byte(addrToHost(r.RemoteAddr)))
+	remoteAddrMD5 := md5.Sum([]byte(host))
 	// 转换为无横杠十六进制
 	remoteAddrMD5String := fmt.Sprintf("%x", remoteAddrMD5)
-	// 创建UploadFiles目录
-	if err := os.Mkdir("./uploadFiles/"+remoteAddrMD5String, os.ModePerm); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, _ = fmt.Fprintln(w, "File upload error.")
-		return
-	}
-	formFile, fileHeader, err := r.FormFile("formFile")
+	// 创建目录
+	_, err := os.Stat("./upload")
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		_, _ = fmt.Fprintln(w, "File is required.")
-		return
+		if os.IsNotExist(err) {
+			err = os.Mkdir("./upload", os.ModePerm)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				_, _ = fmt.Fprintln(w, "File upload error.")
+				return
+			}
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = fmt.Fprintln(w, "File upload error.")
+			return
+		}
 	}
-
-	// 打开并写入文件
-	writingFile, err := os.OpenFile("./uploadFiles/"+remoteAddrMD5String+"/"+fileHeader.Filename, os.O_WRONLY|os.O_CREATE, 0644)
+	_, err = os.Stat("./upload/" + remoteAddrMD5String)
+	if err != nil {
+		if os.IsNotExist(err) {
+			err = os.Mkdir("./upload/"+remoteAddrMD5String, os.ModePerm)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				_, _ = fmt.Fprintln(w, "File upload error.")
+				return
+			}
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = fmt.Fprintln(w, "File upload error.")
+			return
+		}
+	}
+	// 写入文件
+	writingFile, err := os.OpenFile("./upload/"+remoteAddrMD5String+"/"+fileName, os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = fmt.Fprintln(w, "File save error.")
 		return
 	}
-	defer writingFile.Close()
-	writer := bufio.NewWriter(writingFile)
 	buffer := make([]byte, 1024*1024)
+	// 类型：application/octet-stream，大小：1GB
 	for {
-		n, err := formFile.Read(buffer)
+		n, err := r.Body.Read(buffer)
+		if err == io.EOF {
+			_, _ = writingFile.Write(buffer[:n])
+			break
+		}
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			_, _ = fmt.Fprintln(w, "File read error.")
@@ -330,19 +370,21 @@ func fileUploadHandler(w http.ResponseWriter, r *http.Request) {
 		if n == 0 {
 			break
 		}
-		_, err = writer.Write(buffer[:n])
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, _ = fmt.Fprintln(w, "File save error.")
-			return
-		}
+		_, err = writingFile.Write(buffer[:n])
 	}
-	err = writer.Flush()
+	err = writingFile.Sync()
 	if err != nil {
-		fmt.Println(err)
+		return
+	}
+	// 关闭文件
+	err = writingFile.Close()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = fmt.Fprintln(w, "File save error.")
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+	fmt.Println(host + "已上传文件：" + fileName)
 }
 
 // photoCountHandler 处理照片数量设置请求
@@ -361,7 +403,7 @@ func photoCountHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	devicePhotos[addrToHost(r.RemoteAddr)] = make([]string, count)
-	w.WriteHeader(http.StatusOK)
+	//w.WriteHeader(http.StatusOK)
 	host := addrToHost(r.RemoteAddr)
 	_, _ = fmt.Fprintln(w, host+"的照片数量已设置为"+countString)
 }
@@ -439,32 +481,20 @@ func cursorTextHandler(w http.ResponseWriter, r *http.Request) {
 	//}
 
 	// 从Query中获取光标文本
-	cursorText := r.FormValue("cursorText")
+	cursorText := r.FormValue("text")
 	if cursorText == "" {
 		_, _ = fmt.Fprintln(w, "Cursor text is required.")
 		return
 	}
 
 	// 在服务端机器上显示光标文本
-	setCursorText(cursorText, 5*time.Second)
-	_, _ = fmt.Fprintln(w, "Successfully set cursor text: "+cursorText)
-	return
+	setCursorText(cursorText)
+	fmt.Println("接收到光标文本：" + cursorText)
 }
 
 // setCursorText 在服务端机器上显示光标文本
-func setCursorText(cursorText string, duration time.Duration) {
-	// 在服务端机器上显示光标文本
-	notification := toast.Notification{
-		AppID:   "MobiConn",
-		Title:   "MobiConn",
-		Message: cursorText,
-	}
-	err := notification.Push()
-	if err != nil {
-		fmt.Println("Error:", err.Error())
-		return
-	}
-	return
+func setCursorText(cursorText string) {
+	robotgo.TypeStr(cursorText)
 }
 
 // stringInSlice 检查字符串是否在字符串切片中

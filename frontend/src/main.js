@@ -8,12 +8,10 @@ import {createApp} from "vue";
 
 const router = createRouter({
     history: createWebHashHistory(), routes: [{
-        path: '/', component: App
+        path: '/', redirect: '/device'
     }, {
         path: '/device', component: DevicePage
     }, {
-        path: '/photo', component: PhotoPage
-    },{
         path: '/photo/:address', component: PhotoPage, name: 'photo'
     }, {
         path: '/hello', component: HelloWorld
