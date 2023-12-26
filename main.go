@@ -174,13 +174,6 @@ func httpServer() error {
 	mux.HandleFunc("/ppt", powerPointHandler)
 	mux.HandleFunc("/cursor-text", cursorTextHandler)
 
-	//mux.HandleFunc("/download", downloadHandler)
-	//mux.HandleFunc("/upload", uploadHandler)
-	//mux.HandleFunc("/transit", transitHandler)
-	//mux.HandleFunc("/photo", photoHandler)
-	//
-	//mux.HandleFunc("/powerPointDemo", powerPointDemoHandler)
-
 	// 启动HTTP服务器
 	go func() {
 		err := http.ListenAndServe(":25236", mux)
