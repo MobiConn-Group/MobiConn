@@ -1,32 +1,19 @@
 package com.mobisoft.mobiconn.api;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.os.Build;
-import android.os.Environment;
-import android.os.StrictMode;
 import android.util.Log;
-
-import androidx.annotation.RequiresApi;
 
 import com.google.gson.Gson;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileReader;
-import java.io.IOError;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;

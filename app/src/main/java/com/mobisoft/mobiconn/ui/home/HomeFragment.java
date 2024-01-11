@@ -19,7 +19,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.core.app.NotificationCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -28,7 +27,6 @@ import com.mobisoft.mobiconn.api.Goal;
 import com.mobisoft.mobiconn.api.MobiConnAPI;
 import com.mobisoft.mobiconn.databinding.FragmentHomeBinding;
 
-import java.io.File;
 import java.util.List;
 import java.util.Objects;
 
