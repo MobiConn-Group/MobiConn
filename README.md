@@ -8,4 +8,4 @@ https://github.com/MobiConn-Group/MobiConn/tree/desktop
 
 ## Android
 
-https://github.com/MobiConn-Group/MobiConn/tree/android
+https://github.com/MobiConn-Group/MobiConn/tree/android-reloaded
